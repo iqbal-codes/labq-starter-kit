@@ -55,7 +55,7 @@
 - Generic `S3_*` env vars — no `R2_*` or `MINIO_*` aliases
 - S3 client singleton in `packages/api/src/core/s3.ts` (shared by oRPC router and Hono routes)
 - Binary upload/download routes live in `apps/api/src/index.ts` (Hono, not oRPC)
-- Attachment metadata lives in the `attachments` table and stores `entityType` / `entityId`, but the current API surface only exposes `crm_contact` attachments
+- Attachment metadata lives in the `attachments` table and stores `entityType` / `entityId`; the current API surface exposes `operations_customer_avatar` (single, replace) and `operations_service_photo` (multi, append) entity types
 
 ## Permissions
 
@@ -68,9 +68,7 @@
 - Shared CSV utilities in `packages/ui/src/lib/csv.ts`: `parseCsvFile(File)` and `downloadCsv({ filename, headers, rows })`
 - Reusable import dialog: `packages/ui/src/components/import-export/csv-import-dialog.tsx`
 - Generic `CsvImportDialog<TRow>` accepts columns, schema, and `onImport` — UI-focused, not API-aware
-- Schema contract: `CONTACT_IMPORT_EXPORT_FIELDS` in `@admin-template/schemas` defines round-trippable CSV columns
-- Backend bulk import: `contacts.bulkCreate` in `packages/api/src/routers/crm.ts` — row-by-row with audit
-- Backend export: `contacts.exportRows` — unpaginated, returns import-safe subset with nullable → empty string normalization; picks `search`, `status`, and `sort` from the same list input schema
+- CSV import/export is not currently implemented in the operations module; the shared UI primitives are available for future use
 
 ## Generic Search
 
