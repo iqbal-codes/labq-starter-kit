@@ -71,6 +71,10 @@ export function ComboboxField({
               setOpen(o);
               if (!o) field.handleBlur();
             }}
+            itemToStringLabel={(val) => {
+              if (!val) return "";
+              return options.find((o) => o.value === val)?.label ?? placeholder;
+            }}
           >
             <ComboboxInput
               id={field.name}

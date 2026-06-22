@@ -26,6 +26,8 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   title?: string;
   options: Option[];
   multiple?: boolean;
+  /** When false, always show selected value labels (like desktop) and use bigger sizing. */
+  compact?: boolean;
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
@@ -33,12 +35,20 @@ export function DataTableFacetedFilter<TData, TValue>({
   title,
   options,
   multiple,
+  compact = true,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const [open, setOpen] = React.useState(false);
 
   const columnFilterValue = column?.getFilterValue();
   const selectedValues = React.useMemo(
-    () => new Set(Array.isArray(columnFilterValue) ? columnFilterValue : []),
+    () =>
+      new Set(
+        Array.isArray(columnFilterValue)
+          ? columnFilterValue
+          : columnFilterValue != null
+            ? [columnFilterValue]
+            : [],
+      ),
     [columnFilterValue],
   );
 
@@ -56,7 +66,7 @@ export function DataTableFacetedFilter<TData, TValue>({
         const filterValues = Array.from(newSelectedValues);
         column.setFilterValue(filterValues.length ? filterValues : undefined);
       } else {
-        column.setFilterValue(isSelected ? undefined : [option.value]);
+        column.setFilterValue(isSelected ? undefined : option.value);
         setOpen(false);
       }
     },
@@ -73,7 +83,11 @@ export function DataTableFacetedFilter<TData, TValue>({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger render={<Button variant="outline" size="sm" className="border-dashed" />}>
+      <PopoverTrigger
+        render={
+          <Button variant="outline" size={compact ? "sm" : "default"} className="border-dashed" />
+        }
+      >
         {selectedValues?.size > 0 ? (
           <button
             type="button"
@@ -89,11 +103,16 @@ export function DataTableFacetedFilter<TData, TValue>({
         {title}
         {selectedValues?.size > 0 && (
           <>
-            <Separator orientation="vertical" className="mx-0.5 data-[orientation=vertical]:h-4" />
-            <Badge variant="secondary" className="px-1.5 font-normal lg:hidden">
-              {selectedValues.size}
-            </Badge>
-            <div className="hidden items-center gap-1 lg:flex">
+            <Separator
+              orientation="vertical"
+              className="mx-1 h-8! data-[orientation=vertical]:h-4"
+            />
+            {!compact && (
+              <Badge variant="secondary" className="px-1.5 font-normal lg:hidden">
+                {selectedValues.size}
+              </Badge>
+            )}
+            <div className={cn("items-center gap-1", compact ? "hidden lg:flex" : "flex")}>
               {selectedValues.size > 2 ? (
                 <Badge variant="secondary" className="px-1.5 font-normal">
                   {selectedValues.size} selected

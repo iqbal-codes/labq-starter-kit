@@ -3,8 +3,8 @@
 import * as React from "react";
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog";
 
-import { cn } from "@labq-modules/ui/lib/utils";
-import { Button } from "@labq-modules/ui/components/button";
+import { cn } from "@admin-template/ui/lib/utils";
+import { Button } from "@admin-template/ui/components/button";
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;

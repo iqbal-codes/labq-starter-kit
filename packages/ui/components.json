@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@labq-modules/ui/components",
-    "utils": "@labq-modules/ui/lib/utils",
-    "hooks": "@labq-modules/ui/hooks",
-    "lib": "@labq-modules/ui/lib",
-    "ui": "@labq-modules/ui/components"
+    "components": "@admin-template/ui/components",
+    "utils": "@admin-template/ui/lib/utils",
+    "hooks": "@admin-template/ui/hooks",
+    "lib": "@admin-template/ui/lib",
+    "ui": "@admin-template/ui/components"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

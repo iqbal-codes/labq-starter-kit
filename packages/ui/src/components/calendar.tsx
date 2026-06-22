@@ -3,8 +3,8 @@
 import * as React from "react";
 import { DayPicker, getDefaultClassNames, type DayButton, type Locale } from "react-day-picker";
 
-import { cn } from "@labq-modules/ui/lib/utils";
-import { Button, buttonVariants } from "@labq-modules/ui/components/button";
+import { cn } from "@admin-template/ui/lib/utils";
+import { Button, buttonVariants } from "@admin-template/ui/components/button";
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react";
 
 function Calendar({

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { cn } from "@labq-modules/ui/lib/utils";
+import { cn } from "@admin-template/ui/lib/utils";
 
 // eslint-disable-next-line react-doctor/label-has-associated-control -- base label component, consumers associate with control via htmlFor or wrapper pattern
 function Label({ className, ...props }: React.ComponentProps<"label">) {

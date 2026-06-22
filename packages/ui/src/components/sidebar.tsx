@@ -5,20 +5,20 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { useIsMobile } from "@labq-modules/ui/hooks/use-mobile";
-import { cn } from "@labq-modules/ui/lib/utils";
-import { Button } from "@labq-modules/ui/components/button";
-import { Input } from "@labq-modules/ui/components/input";
-import { Separator } from "@labq-modules/ui/components/separator";
+import { useIsMobile } from "@admin-template/ui/hooks/use-mobile";
+import { cn } from "@admin-template/ui/lib/utils";
+import { Button } from "@admin-template/ui/components/button";
+import { Input } from "@admin-template/ui/components/input";
+import { Separator } from "@admin-template/ui/components/separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@labq-modules/ui/components/sheet";
-import { Skeleton } from "@labq-modules/ui/components/skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@labq-modules/ui/components/tooltip";
+} from "@admin-template/ui/components/sheet";
+import { Skeleton } from "@admin-template/ui/components/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@admin-template/ui/components/tooltip";
 import { PanelLeftIcon } from "lucide-react";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";

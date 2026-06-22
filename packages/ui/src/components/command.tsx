@@ -3,15 +3,15 @@
 import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
 
-import { cn } from "@labq-modules/ui/lib/utils";
+import { cn } from "@admin-template/ui/lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@labq-modules/ui/components/dialog";
-import { InputGroup, InputGroupAddon } from "@labq-modules/ui/components/input-group";
+} from "@admin-template/ui/components/dialog";
+import { InputGroup, InputGroupAddon } from "@admin-template/ui/components/input-group";
 import { SearchIcon, CheckIcon } from "lucide-react";
 
 function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {

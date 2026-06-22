@@ -23,8 +23,8 @@ import {
   KanbanColumnHandle,
   KanbanItem,
   KanbanOverlay,
-} from "@labq-modules/ui/components/kanban";
-import { Button } from "@labq-modules/ui/components/button";
+} from "@admin-template/ui/components/kanban";
+import { Button } from "@admin-template/ui/components/button";
 
 // 1. Define your data shape and store
 type Task = { id: string; title: string; priority: string };
@@ -94,7 +94,7 @@ The kanban system lives in a single module (`kanban.tsx`) and exposes 7 componen
 components/
 └── kanban.tsx    # All components and types
 
-Re-exports from @labq-modules/ui/components/kanban:
+Re-exports from @admin-template/ui/components/kanban:
 ```
 
 | Export               | Description                                      |
@@ -117,7 +117,7 @@ Re-exports from @labq-modules/ui/components/kanban:
 The root component. Wraps `DndContext` with collision detection, keyboard navigation, accessibility announcements, and shared context for all child components.
 
 ```tsx
-import { Kanban } from "@labq-modules/ui/components/kanban";
+import { Kanban } from "@admin-template/ui/components/kanban";
 
 <Kanban
   value={columns}
@@ -161,7 +161,7 @@ All other props are forwarded to `DndContext`. Common forwarding targets: `autoS
 The sortable container for columns. Must be a direct or indirect child of `<Kanban>`.
 
 ```tsx
-import { KanbanBoard } from "@labq-modules/ui/components/kanban";
+import { KanbanBoard } from "@admin-template/ui/components/kanban";
 
 <KanbanBoard asChild className="flex-row gap-4">
   {/* KanbanColumn children */}
@@ -185,7 +185,7 @@ Renders a `<SortableContext>` with `horizontalListSortingStrategy` (horizontal o
 A sortable column wrapper. Contains a nested `<SortableContext>` for its items.
 
 ```tsx
-import { KanbanColumn } from "@labq-modules/ui/components/kanban";
+import { KanbanColumn } from "@admin-template/ui/components/kanban";
 
 <KanbanColumn value="inProgress" asHandle={false} disabled={false} className="w-80">
   <div className="flex items-center gap-2">
@@ -220,7 +220,7 @@ When `asHandle` is true, the column is both a sortable target and its own activa
 A button that activates column dragging. Must be inside a `<KanbanColumn>`.
 
 ```tsx
-import { KanbanColumnHandle } from "@labq-modules/ui/components/kanban";
+import { KanbanColumnHandle } from "@admin-template/ui/components/kanban";
 
 <KanbanColumnHandle asChild disabled={false} className="cursor-grab">
   <Button variant="ghost" size="icon">
@@ -247,7 +247,7 @@ All other props are forwarded to `<button>` (`type="button"` set automatically).
 A sortable item within a column. Must be inside a `<KanbanColumn>` or `<KanbanOverlay>`.
 
 ```tsx
-import { KanbanItem } from "@labq-modules/ui/components/kanban";
+import { KanbanItem } from "@admin-template/ui/components/kanban";
 
 <KanbanItem
   value="task-1"
@@ -280,7 +280,7 @@ import { KanbanItem } from "@labq-modules/ui/components/kanban";
 A button that activates item dragging. Must be inside a `<KanbanItem>`.
 
 ```tsx
-import { KanbanItemHandle } from "@labq-modules/ui/components/kanban";
+import { KanbanItemHandle } from "@admin-template/ui/components/kanban";
 
 <KanbanItemHandle asChild disabled={false}>
   <Button variant="ghost" size="icon" className="size-6">
@@ -304,7 +304,7 @@ All other props forwarded to `<button>` (`type="button"` set automatically).
 Portal-based drag overlay that renders while dragging. Provides visual continuity by rendering a snapshot of the dragged element under the cursor/pointer.
 
 ```tsx
-import { KanbanOverlay } from "@labq-modules/ui/components/kanban";
+import { KanbanOverlay } from "@admin-template/ui/components/kanban";
 
 <KanbanOverlay container={document.getElementById("portal-root")}>
   {({ value, variant }) => {
@@ -552,7 +552,7 @@ Arrow keys navigate via a custom `KeyboardCoordinateGetter` that:
 
 ## Exports
 
-### From `@labq-modules/ui/components/kanban`
+### From `@admin-template/ui/components/kanban`
 
 | Export               | Description                                 |
 | -------------------- | ------------------------------------------- |

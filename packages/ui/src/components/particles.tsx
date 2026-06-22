@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@labq-modules/ui/lib/utils";
+import { cn } from "@admin-template/ui/lib/utils";
 
 interface MousePosition {
   x: number;

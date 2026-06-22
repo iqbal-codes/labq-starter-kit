@@ -14,7 +14,7 @@ npm install react-dropzone       # Required for FileUploadField
 
 ```tsx
 import { z } from "zod";
-import { useAppForm, useFormFields } from "@labq-modules/ui/components/forms/tanstack-form";
+import { useAppForm, useFormFields } from "@admin-template/ui/components/forms/tanstack-form";
 
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -73,7 +73,7 @@ The form system has three layers:
 Use the composed `FormXxxField` components with `useFormFields<T>()` for type-safe names:
 
 ```tsx
-import { useAppForm, useFormFields } from '@labq-modules/ui/components/forms/tanstack-form';
+import { useAppForm, useFormFields } from '@admin-template/ui/components/forms/tanstack-form';
 
 const { FormTextField, FormSelectField } = useFormFields<MyFormValues>();
 
@@ -229,7 +229,7 @@ Locale-aware numeric input via `react-number-format`. Supports currency, prefixe
 
 ### `FormSelectField`
 
-Single-select dropdown via shadcn `<Select>`.
+Single-select dropdown via base-ui `<Select>`. Displays the matching `label` from `options` when a value is selected — raw stored values are never shown in the closed trigger. Falls back to the placeholder when no option matches the current value.
 
 | Prop          | Type                                 | Default              | Description           |
 | ------------- | ------------------------------------ | -------------------- | --------------------- |
@@ -239,7 +239,22 @@ Single-select dropdown via shadcn `<Select>`.
 | `options`     | `{ value: string; label: string }[]` | required             | Selectable options    |
 | `placeholder` | `string`                             | `'Select an option'` | Placeholder text      |
 
-For searchable multi-select (combobox), use the AppField pattern with `<Command>` + `<Popover>` shown in the demo.
+For searchable single-select (combobox), use `FormComboboxField` — see below.
+
+### `FormComboboxField`
+
+Searchable single-select combobox via base-ui `<Combobox>`. Displays the matching `label` from `options` when a value is selected — raw stored values are never shown in the closed input. Falls back to the placeholder when no option matches. Works within `useFormFields()` like any other composed field.
+
+| Prop           | Type                                 | Default               | Description                        |
+| -------------- | ------------------------------------ | --------------------- | ---------------------------------- |
+| `label`        | `string`                             | required              | Field label                        |
+| `description`  | `string`                             | —                     | Additional hint text               |
+| `required`     | `boolean`                            | —                     | Appends ` *` to label              |
+| `options`      | `{ value: string; label: string }[]` | required              | Selectable options                 |
+| `placeholder`  | `string`                             | `'Select an option'`  | Placeholder text                   |
+| `emptyMessage` | `string`                             | `'No results found.'` | Message when filter has no matches |
+
+For custom usage outside of TanStack Form (e.g. inside `form.AppField`), use the bare `ComboboxField` component directly with `value`, `onChange`, `onBlur`, `isTouched`, and `isValid` props.
 
 ### `FormTextareaField`
 
@@ -457,6 +472,57 @@ const form = useAppForm({
 });
 ```
 
+### API Errors in onSubmit
+
+When `onSubmit` calls an API that can fail, wrap the call in try/catch and
+surface the error both inline and in a toast:
+
+```tsx
+import { toast } from "sonner";
+import { useAppForm, useFormFields, FormErrors } from "@admin-template/ui/components/forms/use-form-hooks";
+
+const form = useAppForm({
+  defaultValues: {...},
+  validators: { onSubmit: schema },
+  onSubmit: async ({ value, formApi }) => {
+    try {
+      const { error } = await someApiCall(value);
+      if (error) {
+        const message = error.message || "Operation failed. Please try again.";
+        formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+        toast.error(message);
+      }
+    } catch (err) {
+      const message = "An unexpected error occurred. Please try again.";
+      formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+      toast.error(message);
+    }
+  },
+});
+
+// In the template:
+<form.AppForm>
+  <form.Form>
+    <FormErrors /> {/* Renders API errors from formApi.setErrorMap */}
+    {/* fields */}
+  </form.Form>
+</form.AppForm>
+```
+
+For Better Auth auth forms (`signIn.email`, `signUp.email`), map known
+`error.status` / `error.code` values to user-friendly messages:
+
+```tsx
+const message =
+  error.code === "USER_ALREADY_EXISTS"
+    ? "An account with this email already exists"
+    : error.status === 403
+      ? "Please verify your email before signing in"
+      : error.message || "Sign-in failed. Please try again.";
+formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+toast.error(message);
+```
+
 ---
 
 ## Multi-Step Forms
@@ -464,8 +530,8 @@ const form = useAppForm({
 Use the `useFormStepper` hook:
 
 ```tsx
-import { useFormStepper } from '@labq-modules/ui/hooks/use-stepper';
-import { useAppForm, useFormFields } from '@labq-modules/ui/components/forms/tanstack-form';
+import { useFormStepper } from '@admin-template/ui/hooks/use-stepper';
+import { useAppForm, useFormFields } from '@admin-template/ui/components/forms/tanstack-form';
 
 const stepSchemas = [step1Schema, step2Schema, step3Schema];
 
@@ -526,15 +592,15 @@ const handleNext = async () => {
 ```tsx
 "use client";
 import { useStore } from "@tanstack/react-form";
-import { Input } from "@labq-modules/ui/components/input";
-import { FieldLabel } from "@labq-modules/ui/components/field";
+import { Input } from "@admin-template/ui/components/input";
+import { FieldLabel } from "@admin-template/ui/components/field";
 import {
   useFieldContext,
   FormFieldSet,
   FormField,
   FormFieldError,
   createFormField,
-} from "@labq-modules/ui/components/forms/form-context";
+} from "@admin-template/ui/components/forms/form-context";
 
 interface CustomColorFieldProps {
   label: string;
@@ -633,7 +699,7 @@ function useTypedFormFields() {
 
 ## Exports Reference
 
-### From `@labq-modules/ui/components/forms/tanstack-form`
+### From `@admin-template/ui/components/forms/tanstack-form`
 
 | Export               | Type      | Description                                      |
 | -------------------- | --------- | ------------------------------------------------ |
@@ -647,7 +713,7 @@ function useTypedFormFields() {
 | `createFormField`    | Factory   | Wraps a base field into a composed component     |
 | `typedField`         | Utility   | Narrows a field's name prop to type-safe keys    |
 
-### From `@labq-modules/ui/components/forms/form-context`
+### From `@admin-template/ui/components/forms/form-context`
 
 | Export                 | Type      | Description                                         |
 | ---------------------- | --------- | --------------------------------------------------- |

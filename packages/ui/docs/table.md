@@ -24,10 +24,10 @@ npm install react-day-picker          # Used by DataTableDateFilter
 ```tsx
 "use client";
 
-import { useDataTable } from "@labq-modules/ui/hooks/use-data-table";
-import { DataTable } from "@labq-modules/ui/components/table/data-table";
-import { DataTableColumnHeader } from "@labq-modules/ui/components/table/data-table-column-header";
-import { DataTableToolbar } from "@labq-modules/ui/components/table/data-table-toolbar";
+import { useDataTable } from "@admin-template/ui/hooks/use-data-table";
+import { DataTable } from "@admin-template/ui/components/table/data-table";
+import { DataTableColumnHeader } from "@admin-template/ui/components/table/data-table-column-header";
+import { DataTableToolbar } from "@admin-template/ui/components/table/data-table-toolbar";
 import { columns } from "./columns";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -170,9 +170,9 @@ For the standard pattern (server prefetch → client render):
 
 ```tsx
 // page.tsx (server component)
-import { searchParamsCache } from "@labq-modules/ui/lib/searchparams";
+import { searchParamsCache } from "@admin-template/ui/lib/searchparams";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { getQueryClient } from "@labq-modules/ui/lib/query-client";
+import { getQueryClient } from "@admin-template/ui/lib/query-client";
 import { usersQueryOptions } from "@/features/users/api/queries";
 
 type PageProps = { searchParams: Promise<SearchParams> };
@@ -199,8 +199,8 @@ export default async function UsersPage(props: PageProps) {
 "use client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useDataTable } from "@labq-modules/ui/hooks/use-data-table";
-import { getSortingStateParser } from "@labq-modules/ui/lib/parsers";
+import { useDataTable } from "@admin-template/ui/hooks/use-data-table";
+import { getSortingStateParser } from "@admin-template/ui/lib/parsers";
 import { usersQueryOptions } from "@/features/users/api/queries";
 import { columns } from "./columns";
 
@@ -329,7 +329,7 @@ Pinning styles are handled by `getCommonPinningStyles()` from `lib/data-table.ts
 ### `DataTable`
 
 ```tsx
-import { DataTable } from "@labq-modules/ui/components/table/data-table";
+import { DataTable } from "@admin-template/ui/components/table/data-table";
 
 <DataTable table={table} actionBar={<BulkActionBar />}>
   <DataTableToolbar table={table} />
@@ -347,7 +347,7 @@ Renders inside a `ScrollArea` with horizontal scroll support. Empty state: "No r
 ### `DataTableColumnHeader`
 
 ```tsx
-import { DataTableColumnHeader } from "@labq-modules/ui/components/table/data-table-column-header";
+import { DataTableColumnHeader } from "@admin-template/ui/components/table/data-table-column-header";
 
 <DataTableColumnHeader column={column} title="Name" />;
 ```
@@ -367,8 +367,8 @@ header: () => <div className="text-left">Name</div>;
 ### `DataTableToolbar`
 
 ```tsx
-import { DataTableToolbar } from "@labq-modules/ui/components/table/data-table-toolbar";
-import { Button } from "@labq-modules/ui/components/button";
+import { DataTableToolbar } from "@admin-template/ui/components/table/data-table-toolbar";
+import { Button } from "@admin-template/ui/components/button";
 
 <DataTableToolbar table={table}>
   <Button onClick={handleAdd}>Add User</Button>
@@ -384,7 +384,7 @@ Auto-renders filter inputs for all columns where `enableColumnFilter: true`, usi
 ### `DataTablePagination`
 
 ```tsx
-import { DataTablePagination } from "@labq-modules/ui/components/table/data-table-pagination";
+import { DataTablePagination } from "@admin-template/ui/components/table/data-table-pagination";
 
 <DataTablePagination table={table} pageSizeOptions={[10, 20, 30, 50]} />;
 ```
@@ -406,7 +406,7 @@ Shows:
 Toggle column visibility. Renders inside `DataTableToolbar` automatically.
 
 ```tsx
-import { DataTableViewOptions } from "@labq-modules/ui/components/table/data-table-view-options";
+import { DataTableViewOptions } from "@admin-template/ui/components/table/data-table-view-options";
 
 <DataTableViewOptions table={table} />;
 ```
@@ -414,7 +414,7 @@ import { DataTableViewOptions } from "@labq-modules/ui/components/table/data-tab
 ### `DataTableFacetedFilter`
 
 ```tsx
-import { DataTableFacetedFilter } from "@labq-modules/ui/components/table/data-table-faceted-filter";
+import { DataTableFacetedFilter } from "@admin-template/ui/components/table/data-table-faceted-filter";
 
 <DataTableFacetedFilter column={column} title="Status" options={options} multiple={true} />;
 ```
@@ -431,7 +431,7 @@ Single-select mode (`multiple` is `false` or `undefined`): clicking an option re
 ### `DataTableDateFilter`
 
 ```tsx
-import { DataTableDateFilter } from "@labq-modules/ui/components/table/data-table-date-filter";
+import { DataTableDateFilter } from "@admin-template/ui/components/table/data-table-date-filter";
 
 <DataTableDateFilter column={column} title="Created" multiple={false} />;
 ```
@@ -445,7 +445,7 @@ import { DataTableDateFilter } from "@labq-modules/ui/components/table/data-tabl
 ### `DataTableSliderFilter`
 
 ```tsx
-import { DataTableSliderFilter } from "@labq-modules/ui/components/table/data-table-slider-filter";
+import { DataTableSliderFilter } from "@admin-template/ui/components/table/data-table-slider-filter";
 
 <DataTableSliderFilter column={column} title="Price" />;
 ```
@@ -455,7 +455,7 @@ Uses `column.columnDef.meta.range` as the default range, falling back to `getFac
 ### `DataTableSkeleton`
 
 ```tsx
-import { DataTableSkeleton } from "@labq-modules/ui/components/table/data-table-skeleton";
+import { DataTableSkeleton } from "@admin-template/ui/components/table/data-table-skeleton";
 
 <DataTableSkeleton
   columnCount={6}
@@ -588,7 +588,7 @@ The config in `config/data-table.ts` defines operators per filter variant:
 
 ## Type Reference
 
-### From `@labq-modules/ui/types/data-table`
+### From `@admin-template/ui/types/data-table`
 
 ```tsx
 interface ColumnMeta<TData, TValue> {
@@ -630,7 +630,7 @@ interface DataTableRowAction<TData> {
 }
 ```
 
-### From `@labq-modules/ui/lib/parsers`
+### From `@admin-template/ui/lib/parsers`
 
 ```tsx
 // For use with nuqs — validates sort state from URL
@@ -644,7 +644,7 @@ const parser = getFiltersStateParser<TData>(columnIds);
 
 ## Exports
 
-### From `@labq-modules/ui/components/table`
+### From `@admin-template/ui/components/table`
 
 | Export                                                                                     | Description                |
 | ------------------------------------------------------------------------------------------ | -------------------------- |
@@ -659,13 +659,13 @@ const parser = getFiltersStateParser<TData>(columnIds);
 | `DataTableViewOptions`                                                                     | Column visibility toggle   |
 | `Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter` | Base table primitives      |
 
-### From `@labq-modules/ui/hooks/use-data-table`
+### From `@admin-template/ui/hooks/use-data-table`
 
 | Export         | Description                           |
 | -------------- | ------------------------------------- |
 | `useDataTable` | Hook: TanStack Table + nuqs URL state |
 
-### From `@labq-modules/ui/lib/data-table`
+### From `@admin-template/ui/lib/data-table`
 
 | Export                     | Description                           |
 | -------------------------- | ------------------------------------- |
@@ -674,14 +674,14 @@ const parser = getFiltersStateParser<TData>(columnIds);
 | `getDefaultFilterOperator` | Get default operator for a variant    |
 | `getValidFilters`          | Remove empty/invalid filters          |
 
-### From `@labq-modules/ui/lib/parsers`
+### From `@admin-template/ui/lib/parsers`
 
 | Export                  | Description                           |
 | ----------------------- | ------------------------------------- |
 | `getSortingStateParser` | nuqs parser for sort state            |
 | `getFiltersStateParser` | nuqs parser for advanced filter state |
 
-### From `@labq-modules/ui/config/data-table`
+### From `@admin-template/ui/config/data-table`
 
 | Export            | Description                                   |
 | ----------------- | --------------------------------------------- |

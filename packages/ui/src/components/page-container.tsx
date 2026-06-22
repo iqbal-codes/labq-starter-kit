@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@labq-modules/ui/lib/utils";
+import { cn } from "@admin-template/ui/lib/utils";
 
 const pageContainerVariants = cva("flex flex-1 flex-col gap-4 p-6", {
   variants: {

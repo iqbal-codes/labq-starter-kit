@@ -217,9 +217,13 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     return filterableColumns.reduce<Record<string, Parser<string> | Parser<string[]>>>(
       (acc, column) => {
         if (column.column.meta?.options) {
-          acc[column.queryKey] = parseAsArrayOf(parseAsString, ARRAY_SEPARATOR).withOptions(
-            filterQueryStateOptions,
-          );
+          if (column.column.meta.variant === "select") {
+            acc[column.queryKey] = parseAsString.withOptions(filterQueryStateOptions);
+          } else {
+            acc[column.queryKey] = parseAsArrayOf(parseAsString, ARRAY_SEPARATOR).withOptions(
+              filterQueryStateOptions,
+            );
+          }
         } else {
           acc[column.queryKey] = parseAsString.withOptions(filterQueryStateOptions);
         }

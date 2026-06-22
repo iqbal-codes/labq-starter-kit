@@ -16,7 +16,7 @@ npm install sonner    # Toast notifications (already in dashboard)
 ## Quick Start
 
 ```tsx
-import { FileUploader } from "@labq-modules/ui/components/file-uploader";
+import { FileUploader } from "@admin-template/ui/components/file-uploader";
 
 function ProfilePictureUpload() {
   const [files, setFiles] = useState<File[]>([]);
@@ -177,7 +177,7 @@ The component uses `useControllableState` from `hooks/use-controllable-state.ts`
 The `FormFileUploadField` (from `components/forms/fields/file-upload-field.tsx`) wraps `FileUploader` for use inside TanStack Forms:
 
 ```tsx
-import { useAppForm, useFormFields } from "@labq-modules/ui/components/forms/tanstack-form";
+import { useAppForm, useFormFields } from "@admin-template/ui/components/forms/tanstack-form";
 
 const { FormFileUploadField } = useFormFields<MyFormValues>();
 

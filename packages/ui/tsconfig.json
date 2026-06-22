@@ -1,12 +1,12 @@
 {
-  "extends": "@labq-modules/config/tsconfig.base.json",
+  "extends": "@admin-template/config/tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": [],
     "noEmit": true,
     "paths": {
-      "@labq-modules/ui/*": ["./src/*"]
+      "@admin-template/ui/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

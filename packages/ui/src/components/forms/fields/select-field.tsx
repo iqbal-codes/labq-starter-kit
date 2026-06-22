@@ -48,7 +48,9 @@ export function SelectField({
           }}
         >
           <SelectTrigger id={field.name} aria-invalid={isTouched && !isValid}>
-            <SelectValue placeholder={placeholder} />
+            <SelectValue placeholder={placeholder}>
+              {(v) => options.find((o) => o.value === v)?.label ?? placeholder}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {options.map((opt) => (

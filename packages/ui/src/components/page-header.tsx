@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@labq-modules/ui/lib/utils";
+import { cn } from "@admin-template/ui/lib/utils";
 
 interface PageHeaderProps {
   title: ReactNode;

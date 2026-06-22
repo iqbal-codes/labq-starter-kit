@@ -14,7 +14,7 @@ import {
 import { Button } from "../../button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { Input } from "../../input";
-import { cn } from "@labq-modules/ui/lib/utils";
+import { cn } from "@admin-template/ui/lib/utils";
 
 const MONTHS = [
   "Jan",
