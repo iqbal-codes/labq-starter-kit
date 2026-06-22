@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { getPermissionsForRole } from "@labq-modules/types";
+import { getPermissionsForRole } from "@admin-template/types";
 
 function hasPermission(role: string, permission: string): boolean {
   const perms = getPermissionsForRole(role);
@@ -8,31 +8,29 @@ function hasPermission(role: string, permission: string): boolean {
 
 describe("Permission model", () => {
   it("owner has all permissions", () => {
-    expect(hasPermission("owner", "crm.view")).toBe(true);
-    expect(hasPermission("owner", "crm.delete")).toBe(true);
+    expect(hasPermission("owner", "operations.view")).toBe(true);
+    expect(hasPermission("owner", "operations.delete")).toBe(true);
   });
 
   it("admin has all CRUD permissions", () => {
-    expect(hasPermission("admin", "crm.create")).toBe(true);
-    expect(hasPermission("admin", "crm.delete")).toBe(true);
+    expect(hasPermission("admin", "operations.create")).toBe(true);
+    expect(hasPermission("admin", "operations.delete")).toBe(true);
   });
 
   it("member cannot delete", () => {
-    expect(hasPermission("member", "crm.view")).toBe(true);
-    expect(hasPermission("member", "crm.delete")).toBe(false);
+    expect(hasPermission("member", "operations.view")).toBe(true);
+    expect(hasPermission("member", "operations.delete")).toBe(false);
   });
 
   it("viewer can only view", () => {
-    expect(hasPermission("viewer", "crm.view")).toBe(true);
-    expect(hasPermission("viewer", "crm.create")).toBe(false);
+    expect(hasPermission("viewer", "operations.view")).toBe(true);
+    expect(hasPermission("viewer", "operations.create")).toBe(false);
   });
 
   it("unknown role has no permissions", () => {
-    expect(hasPermission("unknown", "crm.view")).toBe(false);
+    expect(hasPermission("unknown", "operations.view")).toBe(false);
   });
 });
-
-// ── Table query defaults ─────────────────────────────────────
 
 describe("Table query defaults", () => {
   it("applies correct defaults", () => {
@@ -47,8 +45,6 @@ describe("Table query defaults", () => {
     expect({ ...defaults, ...input }).toEqual(input);
   });
 });
-
-// ── Error codes ──────────────────────────────────────────────
 
 describe("Error codes", () => {
   it("defines all required error codes", () => {
@@ -66,12 +62,10 @@ describe("Error codes", () => {
   });
 });
 
-// ── Module keys ──────────────────────────────────────────────
-
 describe("Module keys", () => {
-  it("defines only crm", () => {
-    const keys = ["crm"];
+  it("defines only operations", () => {
+    const keys = ["operations"];
     expect(keys).toHaveLength(1);
-    expect(keys).toContain("crm");
+    expect(keys).toContain("operations");
   });
 });
