@@ -20,14 +20,36 @@
 ### Module CRUD Dialog Form Pattern
 
 - `useAppForm` with `defaultValues`, `validators: { onSubmit: schema }`, `onSubmitInvalid: scrollToFirstError()`
-- `useFormFields<T>()` for type-safe field names (`FormTextField`, `FormSelectField`, `FormComboboxField`, `FormNumberField`, `FormTextareaField`, `FormCheckboxField`, `FormDatePickerField`); import from `@admin-template/ui/components/forms/use-form-hooks`
+- `useFormFields<T>()` for type-safe field names; import from `@admin-template/ui/components/forms/use-form-hooks`
+- Dialog content uses `max-h-[85vh] overflow-auto` so tall forms scroll
 - Dialog lifecycle: `form.reset(values)` in open/close handlers; `onOpenChange(false)` clears editing state and resets form
+- `useEntityDataTable` keeps a stable empty-default reference and supports optional `afterSave` for post-save side effects like media uploads
 - `form.AppForm` → `form.Form` → fields → `DialogFooter` with cancel `Button type="button"` + `form.SubmitButton`
 - Cancel button and `onOpenChange(false)` both call `form.reset(EMPTY_FORM)` to prevent stale values leaking
 - Conditional fields: `listeners.onChange` on a discriminated field clears hidden dependent fields via `fieldApi.form.setFieldValue()`
 - Cross-field validation: Zod `superRefine` with per-field `ctx.addIssue({ path: [...] })` for targeted error display
 - Form-level errors: `<FormErrors />` rendered above fields as a safety net for cross-field issues
 - Used in: `customers`, `services`, `orders`
+
+### Photo Upload Form Field Pattern
+
+- Specialized TanStack Form fields: `AvatarUploadField` and `PhotoUploadField`, plus flat composed exports `FormAvatarUploadField` / `FormPhotoUploadField`
+- Both keep the existing `File[]` field value shape and wrap the shared `FileUploader` primitive rather than introducing a separate upload stack
+- `AvatarUploadField` is single-image only (`maxFiles=1`), uses a larger circular preview card, and keeps the API photo-specific instead of exposing a generic variant prop at call sites
+- `PhotoUploadField` defaults to image-only multi-upload (`maxFiles=6`) with gallery-style preview cards; callers can still override `maxFiles`, `maxSize`, and `accept`
+- `FileUploader` now supports visual variants (`default`, `avatar`, `photos`) and customizable dropzone copy so specialized fields can reuse the same selection/progress/remove logic without forking behavior
+- Typed access is available through `useFormFields<T>()` as `FormAvatarUploadField` and `FormPhotoUploadField`
+
+### Operations Media Integration Pattern
+
+- **Backend**: `packages/api/src/core/operations-media.ts` provides org-scoped helpers (`uploadEntityAttachment`, `deleteStoredAttachment`, `listEntityAttachments`, `getAttachmentBytes`, `toAttachmentMetadata`) that combine S3 storage with the `attachments` table
+- **Entity types**: `operations_customer_avatar` (single, replace semantics) and `operations_service_photo` (multi, append semantics)
+- **S3 bootstrap**: `ensureS3BucketExists()` in `packages/api/src/core/s3.ts` auto-creates the bucket on first use, avoiding manual MinIO setup
+- **oRPC procedures**: `customers.avatar.{get,delete}` and `services.photos.{list,delete}` with permission checks and audit logging
+- **Hono routes**: `POST /api/operations/customers/:customerId/avatar`, `POST /api/operations/services/:serviceId/photos`, `GET /api/operations/attachments/:attachmentId`
+- **Client helpers**: `apps/web/src/features/operations/shared/media-client.ts` provides `uploadCustomerAvatar` and `uploadServicePhotos` via `FormData` multipart upload
+- **Form integration**: `afterSave` callback in `useEntityDataTable` runs entity-specific upload logic after create/update without modifying the shared hook
+- **Edit dialog**: persisted attachments shown inline with delete buttons; form values keep `File[]` for new uploads
 
 ### Shared Operations Types/Constants/Schemas Pattern
 
@@ -89,7 +111,7 @@
 
 - Shared empty-state primitives: `Empty`, `EmptyHeader`, `EmptyTitle`, `EmptyDescription`, `EmptyContent`, optional `EmptyMedia`
 - Used where a feature needs a richer no-data state than a table placeholder
-- Used in: `apps/web/src/features/pipeline/page.tsx`
+- Used in: no operations pages currently (available for future use)
 
 ### Organization Selector Pattern
 
@@ -147,11 +169,13 @@
 - Default full-width wrapper: `flex flex-1 flex-col gap-4 p-6`
 - Narrower widths center with `mx-auto w-full max-w-{width}`
 
-### Settings Pattern
+### Theme Mode Persistence Pattern
 
-- Settings entry points live in the sidebar user menu
-- Organization settings page uses stacked cards
-- Used in: `apps/web/src/features/navigation/components/sidebar-user-menu.tsx`, `apps/web/src/features/settings/organization/page.tsx`
+- `apps/web/index.html` runs a pre-hydration inline script that resolves the initial mode from `localStorage.theme` or `matchMedia("(prefers-color-scheme: dark)")`, then sets both the root `.dark` class and `color-scheme`
+- `apps/web/src/main.tsx` wraps the shell in `ThemeProvider` from `@admin-template/ui/components/theme-provider` with `attribute="class"`, `defaultTheme="system"`, `enableSystem`, and `enableColorScheme`
+- `packages/ui/src/components/animated-theme-toggler.tsx` keeps the view-transition animation, but writes the final preference through `next-themes` so explicit light/dark choices persist and no-preference sessions still follow the browser default
+- `apps/web/src/main.tsx` uses `@admin-template/ui/components/sonner` so toast chrome follows the active theme provider
+- Used in: `apps/web/index.html`, `apps/web/src/main.tsx`, `packages/ui/src/components/theme-provider.tsx`, `packages/ui/src/components/animated-theme-toggler.tsx`
 
 ### Layout Header Breadcrumb Pattern
 
