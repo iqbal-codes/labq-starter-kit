@@ -41,16 +41,14 @@
 - Organization onboarding flow
 - Settings pages (organization)
 
-## Phase 7: CRM Remote ✅ (rewritten)
+## Phase 7: Operations Features ✅ (rewritten)
 
-- Overview page with summary metrics and pipeline snapshot
-- Leads: CRUD, dedicated detail page, lead conversion (creates contact + optional company + optional deal)
-- Contacts: CRUD, CSV import/export, S3 attachments, dedicated detail page with activities
-- Companies: CRUD with lifecycle status, dedicated detail page with activities
-- Deals: CRUD with company/contact/stage associations, dedicated detail page with activities
-- Pipeline: stage admin (create/edit/reorder/retire), deal distribution by stage
-- Activities: CRUD on all entities (notes/tasks/calls/meetings), timeline views, completion tracking
+- Overview page with summary metrics
+- Customers: CRUD, avatar upload via S3, dedicated detail page
+- Services: CRUD, photo upload via S3, dedicated detail page
+- Orders: CRUD with customer/service associations, dedicated detail page
 
+- ~~CRM features (leads, contacts, companies, deals, pipeline, activities)~~ (deleted during single-app refactor)
 - ~~Products, Locations, Movements, Balances CRUD~~ (deleted during single-app refactor)
 
 ## Phase 9: Remaining
