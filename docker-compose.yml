@@ -1,0 +1,98 @@
+# Docker Compose for LabQ Modules
+# Runs: postgres, api, web
+# Usage: docker compose up -d
+# Stop: docker compose down
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: labq-modules-db
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-labq_modules_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-labq_modules_dev}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - labq-modules-network
+
+  # Optional: pgAdmin for database management UI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: labq-modules-pgadmin
+    profiles:
+      - admin
+    restart: unless-stopped
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - labq-modules-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: labq-modules-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - labq-modules-network
+
+  minio-setup:
+    image: minio/mc:latest
+    container_name: labq-modules-minio-setup
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 ${S3_ACCESS_KEY_ID:-minioadmin} ${S3_SECRET_ACCESS_KEY:-minioadmin}; do
+        echo 'Waiting for MinIO...';
+        sleep 2;
+      done;
+      mc mb --ignore-existing local/${S3_BUCKET:-labq-modules-dev};
+      echo 'MinIO bucket created.';
+      "
+    networks:
+      - labq-modules-network
+
+volumes:
+  postgres_data:
+    name: labq-modules-postgres
+  pgadmin_data:
+    name: labq-modules-pgadmin
+  minio_data:
+    name: labq-modules-minio
+networks:
+  labq-modules-network:
+    name: labq-modules-network
+    driver: bridge

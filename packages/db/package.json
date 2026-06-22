@@ -1,0 +1,31 @@
+{
+  "name": "@labq-modules/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "db:push": "drizzle-kit push --force",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@labq-modules/env": "workspace:*",
+    "dotenv": "catalog:",
+    "drizzle-orm": "catalog:",
+    "pg": "^8.17.1"
+  },
+  "devDependencies": {
+    "@labq-modules/config": "workspace:*",
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "^0.31.8",
+    "typescript": "catalog:"
+  }
+}

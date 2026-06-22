@@ -1,0 +1,9 @@
+{
+  "name": "@labq-modules/config",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@vitejs/plugin-react": "catalog:"
+  }
+}

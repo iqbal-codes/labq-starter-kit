@@ -1,0 +1,33 @@
+{
+  "name": "@labq-modules/api-server",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "vp pack",
+    "check-types": "tsc -b",
+    "dev": "node --import tsx src/index.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "catalog:",
+    "@hono/node-server": "^2.0.4",
+    "@labq-modules/api": "workspace:*",
+    "@labq-modules/auth": "workspace:*",
+    "@labq-modules/db": "workspace:*",
+    "@labq-modules/env": "workspace:*",
+    "@mastra/ai-sdk": "^1.5.0",
+    "@mastra/core": "^1.45.0",
+    "@mastra/memory": "^1.21.0",
+    "@mastra/pg": "^1.14.0",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "ai": "^6.0.208",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:"
+  },
+  "devDependencies": {
+    "@labq-modules/config": "workspace:*",
+    "tsx": "^4.19.0",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@labq-modules/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orpc/client": "catalog:",
+    "@orpc/tanstack-query": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "sonner": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

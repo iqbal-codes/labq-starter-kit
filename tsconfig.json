@@ -1,0 +1,3 @@
+{
+  "extends": "@labq-modules/config/tsconfig.base.json"
+}

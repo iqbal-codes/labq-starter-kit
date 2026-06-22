@@ -1,0 +1,55 @@
+{
+  "skill_name": "scoped-commits",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a messy working tree. Please commit my current changes gradually by scope instead of making one giant commit. There are auth page edits, an org bootstrap fix, and matching auth E2E updates. I want safe atomic commits.",
+      "expected_output": "Produces a commit plan before acting, groups the bootstrap fix and directly related auth changes sensibly, includes E2E with the behavior it verifies, and reports the remaining scopes after each commit.",
+      "files": [],
+      "expectations": [
+        "Creates an explicit multi-commit plan before the first commit",
+        "Checks git status before proposing the plan so pre-staged work is visible",
+        "Groups changes by intent instead of by directory name alone",
+        "Keeps tests with the behavior they verify unless there is a clear reason not to",
+        "Reviews the staged diff before each commit",
+        "Uses conventional commit messages"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Help me split this diff into logical commits. I mixed a refactor, a bug fix, and some docs copy edits. One of the files has both refactor and bug-fix hunks in it. Commit carefully; don't mix them just because they're in the same file.",
+      "expected_output": "Calls out the mixed-scope file as risky, proposes safe boundaries, and asks only if the hunk split is not mechanically safe.",
+      "files": [],
+      "expectations": [
+        "Separates refactor, bug fix, and docs into different scopes when feasible",
+        "Flags ambiguous mixed-scope files instead of pretending the split is obvious",
+        "Asks for clarification only when the boundary is genuinely unsafe or ambiguous",
+        "Avoids a single catch-all commit"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I changed a dependency, updated the lockfile, regenerated a client, touched two API handlers, and patched the README. I want a clean commit series I can send for review. Please stage and commit gradually based on scope.",
+      "expected_output": "Pairs the dependency and lockfile together, keeps generated artifacts with the source change that required them, leaves docs for a follow-up commit, and reports progress after each commit.",
+      "files": [],
+      "expectations": [
+        "Keeps lockfiles with the dependency change that caused them",
+        "Keeps generated artifacts with their owning source change unless repo convention suggests otherwise",
+        "Puts docs in a separate follow-up commit when they are not required for the code change",
+        "Reports what remains after each completed commit"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I need help committing this gradually, but one file has a refactor and a bug fix tangled together in the same hunk. If it's not safe to separate them mechanically, stop and ask instead of guessing. Also check whether I already have unrelated staged changes before you plan anything.",
+      "expected_output": "Detects that the boundary is not safely separable, checks git status up front, and pauses for clarification instead of creating a fake clean split.",
+      "files": [],
+      "expectations": [
+        "Checks git status before proposing a plan to detect any existing staged work",
+        "Does not pretend an unsafe mixed hunk can be separated cleanly",
+        "Stops and asks for clarification before committing when the split is mechanically unsafe",
+        "Avoids inventing a tidy commit series when the diff does not support one"
+      ]
+    }
+  ]
+}

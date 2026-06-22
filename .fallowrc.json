@@ -1,0 +1,9 @@
+{
+  "ignoreDependencies": [
+    "crm",
+    "inventory",
+    "vite-plus",
+    "@module-federation/vite",
+    "@tailwindcss/vite"
+  ]
+}

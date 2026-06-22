@@ -1,0 +1,29 @@
+{
+  "name": "@labq-modules/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./test": {
+      "default": "./src/test.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@labq-modules/db": "workspace:*",
+    "@labq-modules/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@labq-modules/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

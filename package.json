@@ -1,0 +1,56 @@
+{
+  "name": "labq-modules",
+  "private": true,
+  "description": "Single-app Internal Tools Platform",
+  "type": "module",
+  "scripts": {
+    "dev": "./scripts/dev.sh",
+    "build": "vp run -r build",
+    "check-types": "vp run -r check-types",
+    "dev:api": "vp run --filter ./apps/api dev",
+    "dev:web": "vp dev apps/web",
+    "db:push": "vp run --filter ./packages/db db:push",
+    "db:studio": "vp run --filter ./packages/db db:studio",
+    "db:generate": "vp run --filter ./packages/db db:generate",
+    "db:migrate": "vp run --filter ./packages/db db:migrate",
+    "db:check": "./scripts/db-setup.sh status",
+    "check": "vp check --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:reset": "docker compose down -v && docker compose up -d postgres",
+    "docker:logs": "docker compose logs -f postgres",
+    "db:setup": "./scripts/db-setup.sh start && vp run --filter ./packages/db db:push",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:install": "playwright install --with-deps",
+    "test:e2e:report": "playwright show-report",
+    "prepare": "vp config"
+  },
+  "dependencies": {
+    "@labq-modules/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@labq-modules/config": "workspace:*",
+    "@labq-modules/types": "workspace:*",
+    "@playwright/test": "^1.60.0",
+    "@types/node": "25.9.3",
+    "tsx": "^4.19.0",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "overrides": {
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
