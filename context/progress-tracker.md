@@ -1,3 +1,107 @@
+## Customer Contact Validation Hardening
+
+Tightened customer form validation so optional contact fields accept blanks, reject malformed input, and surface errors earlier in the dialog.
+
+Changes:
+
+- **Shared customer validators** (`packages/schemas/src/index.ts`): added trimmed optional email and phone schemas; blank strings now normalize to `undefined`, email uses Zod email validation, and phone accepts common punctuation / extensions while requiring 7–15 digits.
+- **Customer form schema** (`apps/web/src/features/operations/shared/form-schemas.ts`): switched the customer form to those shared validators so frontend and API validation stay aligned.
+- **Field-level feedback** (`apps/web/src/features/customers/page.tsx`): added `onBlur` validators for the email and phone inputs so users see field errors before submit.
+- **Regression coverage** (`apps/web/src/features/operations/shared/form-schemas.test.ts`): added cases for blank optional fields, invalid email, invalid phone, and a valid formatted international phone number.
+
+Verification:
+
+- `pnpm test apps/web/src/features/operations/shared/form-schemas.test.ts`
+- `pnpm --filter @admin-template/schemas check-types`
+- `pnpm --filter @admin-template/web check-types`
+
+**Last synced:** 2026-06-22
+
+## Customer Avatar and Service Photos — Full Integration
+
+Integrated persisted media uploads for customer avatars and service photos through API, S3 storage, and database-backed attachment records.
+
+Changes:
+
+- **Backend attachment helpers** (`packages/api/src/core/operations-media.ts`): reusable S3 + attachments-table helpers for upload, download, list, and soft-delete with org scoping and entity-type enforcement
+- **S3 bucket bootstrap** (`packages/api/src/core/s3.ts`): added `ensureS3BucketExists()` that auto-creates the configured bucket on first use, fixing local dev on fresh MinIO instances
+- **oRPC media procedures** (`packages/api/src/routers/operations.ts`): added `customers.avatar.{get,delete}` and `services.photos.{list,delete}` with permission checks and audit logging
+- **Hono upload/download routes** (`apps/api/src/index.ts`): added `POST /api/operations/customers/:customerId/avatar` (replace semantics), `POST /api/operations/services/:serviceId/photos` (append semantics), and `GET /api/operations/attachments/:attachmentId` (binary download)
+- **Client media helpers** (`apps/web/src/features/operations/shared/media-client.ts`): fetch-based upload functions for browser-side multipart upload
+- **oRPC query/mutation factories** (`apps/web/src/features/customers/api/`, `apps/web/src/features/services/api/`): added avatar and photos query options and delete mutations
+- **EntityDataTable afterSave hook** (`apps/web/src/features/shared/use-entity-data-table.ts`): added optional `afterSave` callback so entity-specific post-save logic runs after create/update
+- **Scrollable dialog** (`apps/web/src/features/shared/form-dialog.tsx`): added `max-h-[85vh] overflow-auto` to `DialogContent` so tall forms remain scrollable
+- **Customer page integration** (`apps/web/src/features/customers/page.tsx`): `afterSave` uploads avatar via Hono route, shows persisted avatar from API in edit dialog with remove button
+- **Service page integration** (`apps/web/src/features/services/page.tsx`): `afterSave` uploads photos via Hono route, shows persisted photo gallery from API in edit dialog with per-photo remove buttons
+- **E2E coverage** (`e2e/operations-flow.spec.ts`): verifies avatar and photo uploads persist through API, appear in edit dialogs, and can be deleted
+
+Verification:
+
+- `pnpm --filter @admin-template/ui check-types`
+- `pnpm --filter @admin-template/web check-types`
+- `pnpm --filter @admin-template/api check-types`
+- `pnpm --filter @admin-template/api-server check-types`
+- `pnpm playwright test e2e/operations-flow.spec.ts`
+
+**Last synced:** 2026-06-22
+
+## Theme Toggle Persistence and System Default
+
+Fixed the shell header theme toggle so explicit light/dark choices survive reloads and first load follows the browser color-scheme when no preference is saved.
+
+Changes:
+
+- **Theme bootstrap** (`apps/web/index.html`): added an inline pre-hydration script that reads `localStorage.theme`, falls back to `matchMedia("(prefers-color-scheme: dark)")`, then sets the root `.dark` class and `color-scheme` before React mounts
+- **Theme provider wiring** (`apps/web/src/main.tsx`, `packages/ui/src/components/theme-provider.tsx`): wrapped the app in `next-themes` via a shared UI `ThemeProvider` configured for class-based theming with `defaultTheme="system"` and `enableSystem`
+- **Toggle persistence fix** (`packages/ui/src/components/animated-theme-toggler.tsx`): replaced the ad-hoc `localStorage` write with `setTheme(...)` so the provider, DOM class, and saved preference stay aligned while preserving the existing view-transition animation
+- **Toast theming alignment** (`apps/web/src/main.tsx`): switched the shell toast host to `@admin-template/ui/components/sonner` so toast chrome follows the active theme
+- **Regression coverage** (`e2e/theme-toggle.spec.ts`): added coverage for persisted dark mode after reload and browser-dark default behavior when `localStorage.theme` is unset
+
+Verification:
+
+- `pnpm --filter @admin-template/ui check-types`
+- `pnpm --filter @admin-template/web check-types`
+- `pnpm playwright test e2e/theme-toggle.spec.ts`
+
+**Last synced:** 2026-06-22
+
+## Photo Upload Form Fields
+
+Added specialized image-focused TanStack Form fields in `packages/ui` without changing the generic file-upload field contract.
+
+Changes:
+
+- **New photo field exports** (`packages/ui/src/components/forms/fields/photo-upload-field.tsx`): added `AvatarUploadField` / `PhotoUploadField` plus flat composed `FormAvatarUploadField` / `FormPhotoUploadField`
+- **Shared field contract**: both new fields keep the existing `File[]` value shape and route through `field.handleChange`, so callers do not need a new single-file form type for avatars
+- **Behavior defaults**: avatar uploads are single-image only with image-only accept defaults; photo uploads default to image-only multi-upload with `maxFiles=6`; both default `maxSize` to `5MB`
+- **Uploader presentation reuse** (`packages/ui/src/components/file-uploader.tsx`): extended the primitive with `default` / `avatar` / `photos` variants plus customizable dropzone copy so specialized fields reuse the same drop, preview, progress, and remove logic
+- **Forms API wiring** (`packages/ui/src/components/forms/fields/index.tsx`, `packages/ui/src/components/forms/use-form-hooks.tsx`): exported the new fields, registered them with `createFormHook`, and exposed typed access through `useFormFields<T>()`
+
+Verification:
+
+- `pnpm --filter @admin-template/ui check-types`
+- `pnpm --filter @admin-template/web check-types`
+
+**Last synced:** 2026-06-22
+
+## CRUD Dialog Edit Prefill Fix
+
+Fixed the shared operations CRUD dialog so edit flows open with the selected row values instead of resetting back to the empty form.
+
+Changes:
+
+- **Shared hook fix** (`apps/web/src/features/shared/use-entity-data-table.ts`): captured the empty form defaults once per hook instance and derived `useAppForm({ defaultValues })` from the current edit target (`editing ? toFormValues(editing) : emptyDefaults`).
+- **Why**: TanStack Form's `useForm` calls `formApi.update(opts)` on every render; after `form.reset(rowValues)`, the next render was reapplying `EMPTY_*_FORM` as `defaultValues`, which wiped the selected row values before the dialog fields mounted.
+- **Behavior preserved**: create and close still explicitly reset back to the empty form; edit still explicitly resets to the selected row before opening.
+- **Regression coverage** (`e2e/operations-flow.spec.ts`): added an assertion that the customer edit dialog opens with `Name = "Acme Buyer"` before the test changes it.
+
+Verification:
+
+- `pnpm --filter @admin-template/web check-types`
+- `pnpm playwright test e2e/operations-flow.spec.ts`
+
+**Last synced:** 2026-06-22
+
 # Progress Tracker
 
 ## Query Abstractions Compliance
@@ -281,7 +385,7 @@ Module generator infrastructure (historical — scripts deleted during single-ap
 6. RLS SQL policies
 7. Workspace typecheck cleanup (`packages/env/src/web.ts` fails on `import.meta.env` typing in `pnpm check-types` as of 2026-06-20)
 8. ~~E2E run for data-table URL-state coverage (`e2e/data-table.spec.ts`)~~ (done)
-9. Attachment expansion / entity-specific RBAC if product needs attachments beyond CRM contacts
+9. Attachment expansion / entity-specific RBAC if product needs attachments beyond operations customers
 
 ## Architecture Summary
 
@@ -289,7 +393,7 @@ Module generator infrastructure (historical — scripts deleted during single-ap
 pnpm workspace + vite-plus (`vp`)
 ├── apps/
 │   ├── api (port 4000) — Hono + oRPC backend
-│   └── web (port 3100) — React SPA, CRM features, sidebar org selector, onboarding
+│   └── web (port 3100) — React SPA, operations features, sidebar org selector, onboarding
 ├── packages/
 │   ├── api — Router + procedures
 │   ├── auth — Better Auth + Organization plugin
