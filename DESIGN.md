@@ -1,5 +1,5 @@
 ---
-name: LabQ Modules
+name: Admin App Template
 description: Modular internal tools platform — clean, capable, calm
 colors:
   primary: "oklch(0.205 0 0)"
@@ -80,7 +80,7 @@ components:
     padding: "8px 12px"
 ---
 
-# Design System: LabQ Modules
+# Design System: Admin App Template
 
 ## 1. Overview
 

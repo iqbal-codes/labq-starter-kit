@@ -11,7 +11,7 @@ Created auth + i18n middleware for Next.js at `/Users/efishery/Documents/workspa
 Combined auth + i18n middleware that:
 
 - Uses Next-intl `createMiddleware` with routing configuration
-- Imports `auth` from `@labq-modules/auth` (workspace package)
+- Imports `auth` from `@admin-template/auth` (workspace package)
 - Validates session via `auth.api.getSession()` for every request
 - Protects `/dashboard` routes requiring authentication
 - Redirects authenticated users from auth/login pages to `/dashboard/overview`
@@ -29,7 +29,7 @@ export { default, config } from "./proxy";
 ## Validation
 
 - Files written successfully
-- Auth import from `@labq-modules/auth` confirmed (packages/auth/src/index.ts exports `auth` instance)
+- Auth import from `@admin-template/auth` confirmed (packages/auth/src/index.ts exports `auth` instance)
 - i18n routing configuration confirmed (`@/i18n/routing` exists with locales: ['en', 'id'])
 - Matcher pattern: `['/((?!api|trpc|_next|_vercel|.*\\..*).*)']` excludes API routes and static files
 

@@ -94,8 +94,8 @@ packages/
 
 | Component                 | Status            | Notes                                      |
 | ------------------------- | ----------------- | ------------------------------------------ |
-| `nav-main.tsx`            | ✅ Ported         | Uses `@labq-modules/ui/components/sidebar`    |
-| `nav-user.tsx`            | ✅ Ported         | Uses `@labq-modules/ui/components/sidebar`    |
+| `nav-main.tsx`            | ✅ Ported         | Uses `@admin-template/ui/components/sidebar`    |
+| `nav-user.tsx`            | ✅ Ported         | Uses `@admin-template/ui/components/sidebar`    |
 | `breadcrumbs.tsx`         | ✅ Ported         |                                            |
 | `page-container.tsx`      | ✅ Ported         |                                            |
 | `kbar/index.tsx`          | ✅ Ported         |                                            |
@@ -294,7 +294,7 @@ RootLayout (html, body, ThemeScript, NuqsAdapter, ThemeProvider)
 
 2. **Create `apps/web/src/components/layout/app-sidebar.tsx`**
    - Port from source, adapt imports:
-     - `@/components/ui/sidebar` → `@labq-modules/ui/components/sidebar`
+     - `@/components/ui/sidebar` → `@admin-template/ui/components/sidebar`
      - `@/lib/auth-client` → `@/lib/auth-client` (same)
      - `@/i18n/navigation` → `next/navigation` (if no i18n) or `@/i18n/navigation`
      - `@/components/icons` → create local `icons.tsx` or use `lucide-react`
@@ -442,7 +442,7 @@ src/i18n/
 | #   | Risk                                                                                                | Mitigation                                                                                    |
 | --- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | 1   | **Database mismatch** — Source uses SQLite, target uses PostgreSQL                                  | Schema types differ (`integer` vs `timestamp`). Use PostgreSQL types when porting org tables. |
-| 2   | **Import path changes** — Source uses `@/components/ui/*`, target uses `@labq-modules/ui/components/*` | Map all imports during porting.                                                               |
+| 2   | **Import path changes** — Source uses `@/components/ui/*`, target uses `@admin-template/ui/components/*` | Map all imports during porting.                                                               |
 | 3   | **Icon library** — Source uses `@tabler/icons-react`, target uses `lucide-react`                    | Create an icon mapping or switch to lucide-react consistently.                                |
 | 4   | **Route structure** — Source puts dashboard under `[locale]`, target has flat `/dashboard`          | Need to restructure routes, which affects existing links.                                     |
 | 5   | **Auth page i18n** — Source auth pages are outside `[locale]` (hardcoded English)                   | Decide if auth pages should be translated.                                                    |

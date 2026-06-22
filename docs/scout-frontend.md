@@ -2,7 +2,7 @@
 
 ## Overview
 
-Monorepo with a **Next.js 16** app (`apps/web`) + a **shared UI package** (`packages/ui`) leveraging **shadcn/ui Lyra style** (the newer Base UI-based variant). The UI package is published as `@labq-modules/ui` and consumed by the web app.
+Monorepo with a **Next.js 16** app (`apps/web`) + a **shared UI package** (`packages/ui`) leveraging **shadcn/ui Lyra style** (the newer Base UI-based variant). The UI package is published as `@admin-template/ui` and consumed by the web app.
 
 ---
 
@@ -27,11 +27,11 @@ Monorepo with a **Next.js 16** app (`apps/web`) + a **shared UI package** (`pack
 | `apps/web/src/components/sign-in-form.tsx`   | 1-108 | `@tanstack/react-form` + Zod login form with email/password fields                                                      |
 | `apps/web/src/components/sign-up-form.tsx`   | 1-126 | TanStack Form registration with name/email/password                                                                     |
 | `apps/web/src/components/loader.tsx`         | 1-8   | Simple spinner using `Loader2` from lucide                                                                              |
-| `apps/web/src/index.css`                     | 1-2   | Imports `@labq-modules/ui/globals.css` + sources streamdown JS                                                             |
+| `apps/web/src/index.css`                     | 1-2   | Imports `@admin-template/ui/globals.css` + sources streamdown JS                                                             |
 | `apps/web/src/utils/orpc.ts`                 | 1-41  | ORPC client setup: `createORPCClient` + `RPCLink` + `createTanstackQueryUtils`                                          |
 | `apps/web/src/lib/auth-client.ts`            | 1-6   | `better-auth/react` client                                                                                              |
 | `apps/web/next.config.ts`                    | 1-7   | `typedRoutes: true`, `reactCompiler: true`, transpile shiki                                                             |
-| `apps/web/components.json`                   | 1-20  | shadcn config: style `base-lyra`, CSS in packages/ui, aliases pointing to `@labq-modules/ui`                               |
+| `apps/web/components.json`                   | 1-20  | shadcn config: style `base-lyra`, CSS in packages/ui, aliases pointing to `@admin-template/ui`                               |
 
 ### UI Package (`packages/ui/`)
 
@@ -237,7 +237,7 @@ Full-featured client-side data table built on `@tanstack/react-table`:
 
 ### 8. Authentication
 
-- **better-auth** (via `@labq-modules/auth`) — `authClient` in `lib/auth-client.ts`
+- **better-auth** (via `@admin-template/auth`) — `authClient` in `lib/auth-client.ts`
 - `authClient.useSession()` React hook for session state
 - Server-side `authClient.getSession()` in dashboard page (renders conditionally)
 - Sign-in and sign-up forms call `authClient.signIn.email()` / `authClient.signUp.email()`
@@ -299,9 +299,9 @@ Layout: `grid-rows-[auto_1fr] h-svh` (header on top, content fills remaining hei
 │  └─────────────┘  │ - sign-in/up │                                 │
 │                   └──────────────┘                                 │
 │                                                                     │
-│  Imports @labq-modules/ui for all components                    │
-│  Imports @labq-modules/env for config                           │
-│  Imports @labq-modules/api for types/RPC                        │
+│  Imports @admin-template/ui for all components                    │
+│  Imports @admin-template/env for config                           │
+│  Imports @admin-template/api for types/RPC                        │
 └─────────────────────────┬───────────────────────────────────────────┘
                           │
                           ▼

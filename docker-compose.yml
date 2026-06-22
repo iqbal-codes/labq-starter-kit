@@ -1,4 +1,4 @@
-# Docker Compose for LabQ Modules
+# Docker Compose for Admin App Template
 # Runs: postgres, api, web
 # Usage: docker compose up -d
 # Stop: docker compose down
@@ -6,14 +6,14 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: labq-modules-db
+    container_name: admin-app-template-db
     restart: unless-stopped
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-labq_modules_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-admin_app_template_dev}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
@@ -21,19 +21,19 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-labq_modules_dev}",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-admin_app_template_dev}",
         ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     networks:
-      - labq-modules-network
+      - admin-app-template-network
 
   # Optional: pgAdmin for database management UI
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: labq-modules-pgadmin
+    container_name: admin-app-template-pgadmin
     profiles:
       - admin
     restart: unless-stopped
@@ -49,11 +49,11 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - labq-modules-network
+      - admin-app-template-network
 
   minio:
     image: minio/minio:latest
-    container_name: labq-modules-minio
+    container_name: admin-app-template-minio
     restart: unless-stopped
     ports:
       - "9000:9000"
@@ -65,11 +65,11 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
     networks:
-      - labq-modules-network
+      - admin-app-template-network
 
   minio-setup:
     image: minio/mc:latest
-    container_name: labq-modules-minio-setup
+    container_name: admin-app-template-minio-setup
     depends_on:
       minio:
         condition: service_started
@@ -79,20 +79,20 @@ services:
         echo 'Waiting for MinIO...';
         sleep 2;
       done;
-      mc mb --ignore-existing local/${S3_BUCKET:-labq-modules-dev};
+      mc mb --ignore-existing local/${S3_BUCKET:-admin-app-template-dev};
       echo 'MinIO bucket created.';
       "
     networks:
-      - labq-modules-network
+      - admin-app-template-network
 
 volumes:
   postgres_data:
-    name: labq-modules-postgres
+    name: admin-app-template-postgres
   pgadmin_data:
-    name: labq-modules-pgadmin
+    name: admin-app-template-pgadmin
   minio_data:
-    name: labq-modules-minio
+    name: admin-app-template-minio
 networks:
-  labq-modules-network:
-    name: labq-modules-network
+  admin-app-template-network:
+    name: admin-app-template-network
     driver: bridge

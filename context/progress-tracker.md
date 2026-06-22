@@ -1,5 +1,69 @@
 # Progress Tracker
 
+## Query Abstractions Compliance
+
+Refactored all query/mutation abstractions to match the standard in `.agents/skills/shadcn-dashboard/references/query-abstractions.md`.
+
+Changes:
+
+- **Per-feature API factories**: Created `api/queries.ts` + `api/mutations.ts` in `customers/`, `services/`, `orders/`, `organization/`, and `operations/` feature directories
+- **Key factories**: Each entity exports `<entity>Keys` with `all`, `lists`, `list`, `details`, `detail` for cache invalidation via prefix matching
+- **oRPC integration**: Factories use oRPC's `.queryOptions()` and `.mutationOptions()` methods directly
+- **Hook rewrite**: `useEntityDataTable` consumes typed factory refs (`listQueryOptions`, `createMutation`, `updateMutation`, `softDeleteMutation`, `summaryQueryKey`) instead of raw oRPC procedure refs
+- **Invalidation fix**: Hook uses `useQueryClient()` from React context (correct instance) instead of `getQueryClient()` from UI package (separate singleton)
+- **Organization hook**: `useOrganizationProfile` consumes `updateOrganizationProfileMutation` factory
+- **Overview page**: Uses `operationsSummaryQueryOptions()` factory
+- **Lookups hook**: Uses `operationsCustomerListQueryOptions()` / `operationsServiceListQueryOptions()` factories
+- **Removed**: All `as unknown as` casts, manual type aliases, `orpc*` config fields from `useEntityDataTable`
+- **Config shape**: `EntityDataTableConfig` now takes `listQueryOptions`, `createMutation`, `updateMutation`, `softDeleteMutation`, `summaryQueryKey`
+
+Verification:
+
+- `pnpm --filter @admin-template/web check-types` — clean
+- `pnpm playwright test e2e/data-table.spec.ts e2e/operations-flow.spec.ts` — 2/2 passed
+- Grep: zero hits for `as unknown as`, `getQueryClient`, `EntityListProcedureLike`, `orpcList`
+
+**Last synced:** 2026-06-22
+
+## API Error Surfacing in Forms
+
+Added inline form-level error display for API errors in `onSubmit` across all three forms that call APIs:
+
+- **Sign-in** (`apps/web/src/pages/auth/sign-in.tsx`): `onSubmit` catches Better Auth errors, maps known status codes (`403` → verify-email prompt, fallback → `error.message`), sets form-level error via `formApi.setErrorMap({ onSubmit: { form: message, fields: {} } })`, and fires a `sonner` toast. `<FormErrors />` added inside `<CardContent>`.
+- **Sign-up** (`apps/web/src/pages/auth/sign-up.tsx`): same pattern — maps `USER_ALREADY_EXISTS` and status `403`.
+- **Onboarding** (`apps/web/src/features/onboarding/page.tsx`): error handling moved from `useMutation.onError` into the `onSubmit` catch block, with `setErrorMap` for inline display and toast for redundancy. `<FormErrors />` added.
+- **Removed**: stale `onError` handler from onboarding mutation (duplicate toast).
+- **Pattern**: both channels — inline `FormErrors` (a11y-friendly `role="alert"`) + `sonner` toast.
+- **Customers/Services/Orders** (`useEntityDataTable` shared hook + `EntityFormDialog`):
+  Shared `onSubmit` now catches `mutateAsync` rejection and sets form-level error via
+  `formApi.setErrorMap({ onSubmit: { form: message, fields: {} } })`.
+  `<FormErrors />` added to `EntityFormDialog` so the inline alert renders in all
+  data-table CRUD dialogs. Toast was already wired via mutation `onError`.
+
+Verification:
+
+- `pnpm --filter @admin-template/web check-types` — clean
+- `pnpm playwright test e2e/auth-flow.spec.ts` — 5/5 passed
+
+**Last synced:** 2026-06-22
+
+## Form Field Label Display
+
+Updated `SelectField` and `ComboboxField` to display the matching option label in the closed field UI instead of the raw stored value.
+
+Changes:
+
+- **SelectField** (`packages/ui/src/components/forms/fields/select-field.tsx`): used `SelectValue`'s `children` render function to map the stored value to the matching option label. Falls back to placeholder when no option matches.
+- **ComboboxField** (`packages/ui/src/components/forms/fields/combobox-field.tsx`): used `Combobox.Root`'s `itemToStringLabel` prop to convert the selected value to the display label. Empty values keep the input placeholder.
+- **Scope**: form field wrappers only — base `Select` and `Combobox` primitives unchanged.
+
+Verification:
+
+- `pnpm --filter @admin-template/ui check-types` — clean
+- `pnpm --filter @admin-template/web check-types` — clean
+
+**Last synced:** 2026-06-22
+
 ## UI Source Duplicate Cleanup
 
 Stopped `packages/ui` from re-emitting `.js` files beside the TypeScript source files.
@@ -12,7 +76,7 @@ Changes:
 
 Verification:
 
-- `pnpm --filter @labq-modules/ui exec tsc -p tsconfig.json --listEmittedFiles`
+- `pnpm --filter @admin-template/ui exec tsc -p tsconfig.json --listEmittedFiles`
 - `python3 - <<'PY' ... Path('packages/ui/src').rglob('*.js') ... -> 0 files`
 
 **Last synced:** 2026-06-22
@@ -28,23 +92,22 @@ Changes:
 - **OrganizationRoute guard** (`apps/web/src/components/organization-route.tsx`): wraps dashboard routes, redirects to `/onboarding` if no active org in session.
   - **Sidebar org selector** (`apps/web/src/features/navigation/components/sidebar-brand.tsx`): `Building2` icon, org name, dropdown with org list + Create organization. Switches active org via `setActive`. `DropdownMenuLabel` must be inside `DropdownMenuGroup` (base-ui `Menu.Group` context requirement).
 - **Organization create procedure** (`packages/api/src/routers/organization.ts`): `slugifyOrganizationName`, unique slug resolution (`-2` through `-100`), transactional org + member + workspace table insert.
-- **Shared schema** (`createOrganizationSchema` in `@labq-modules/schemas`), **seed exports** (`DEFAULT_DEAL_STAGES`, `insertInitialWorkspaceTables` in `packages/auth/src/seed.ts`).
+- **Shared schema** (`createOrganizationSchema` in `@admin-template/schemas`), **seed exports** (`DEFAULT_DEAL_STAGES`, `insertInitialWorkspaceTables` in `packages/auth/src/seed.ts`).
 - **Removed stale nav**: Modules item deleted from sidebar user menu.
 - **E2E tests updated**: signup expects `/onboarding` flow, sidebar org selector verified with org switching.
 - **Unit test**: `slugifyOrganizationName` with 3 cases (punctuation, diacritics, empty).
 
 Verification:
 
-- `pnpm --filter @labq-modules/schemas check-types`
-- `pnpm --filter @labq-modules/auth check-types`
-- `pnpm --filter @labq-modules/api check-types`
-- `pnpm --filter @labq-modules/api-server check-types`
-- `pnpm --filter @labq-modules/web check-types`
+- `pnpm --filter @admin-template/schemas check-types`
+- `pnpm --filter @admin-template/auth check-types`
+- `pnpm --filter @admin-template/api check-types`
+- `pnpm --filter @admin-template/api-server check-types`
+- `pnpm --filter @admin-template/web check-types`
 - `pnpm test packages/api/src/routers/organization.test.ts`
 - `pnpm playwright test e2e/auth-flow.spec.ts --grep 'organization onboarding|sidebar'`
 
 **Last synced:** 2026-06-22
-
 
 ## Assistant Mobile Bottom Sheet
 
@@ -58,7 +121,7 @@ Changes:
 
 Verification:
 
-- `pnpm --filter @labq-modules/web check-types`
+- `pnpm --filter @admin-template/web check-types`
 - `pnpm playwright test e2e/assistant-chat.spec.ts --grep "full-width bottom sheet"`
 
 **Last synced:** 2026-06-20
@@ -75,7 +138,7 @@ Changes:
 
 Verification:
 
-- `pnpm --filter @labq-modules/web check-types`
+- `pnpm --filter @admin-template/web check-types`
 - `pnpm playwright test e2e/assistant-chat.spec.ts`
 
 **Last synced:** 2026-06-21
@@ -93,8 +156,8 @@ Changes:
 
 Verification:
 
-- `pnpm --filter @labq-modules/db check-types`
-- `pnpm --filter @labq-modules/api-server check-types`
+- `pnpm --filter @admin-template/db check-types`
+- `pnpm --filter @admin-template/api-server check-types`
 - `pnpm db:push`
 - `./scripts/dev.sh crm` followed by authenticated `/api/ai/chat/history` checks and UI reload checks
 
@@ -114,7 +177,7 @@ Changes:
 
 Verification:
 
-- `pnpm --filter @labq-modules/web check-types` — clean
+- `pnpm --filter @admin-template/web check-types` — clean
 - `npx playwright test e2e/assistant-chat.spec.ts` — passed
 - Browser screenshots at desktop and mobile viewports confirmed responsive layout and empty-state spacing
 - CLI `detect.mjs` on the file returned clean (`[]`)
@@ -129,8 +192,8 @@ Assistant transcript persistence complete:
 
 Verification:
 
-- `pnpm --filter @labq-modules/api-server check-types`
-- `pnpm --filter @labq-modules/web check-types`
+- `pnpm --filter @admin-template/api-server check-types`
+- `pnpm --filter @admin-template/web check-types`
 - `pnpm playwright test e2e/assistant-chat.spec.ts`
 
 React Doctor health audit complete — score lift from **47 → 68 (+21)** across all React packages (at time of audit, before single-app refactor):
@@ -150,7 +213,7 @@ Major improvements landed:
 
 Verification (at time of audit):
 
-- `pnpm -r --filter @labq-modules/ui exec tsc --build` — clean
+- `pnpm -r --filter @admin-template/ui exec tsc --build` — clean
 - `pnpm dlx react-doctor -y` — 0 errors, 74 warnings remaining
 
 Module generator infrastructure (historical — scripts deleted during single-app refactor):
@@ -158,11 +221,12 @@ Module generator infrastructure (historical — scripts deleted during single-ap
 - ~~`pnpm create:module`~~ — deleted along with `scripts/create-module.ts` and `scripts/templates/`
 - Generator previously created shell-only remote modules with CRM-pattern templates
 - Module code generation is no longer needed for the single-app architecture
+
 ### Background Context
 
 ### Verified
 
-- [x] Workspace identity reset (labq-modules, @labq-modules/*)
+- [x] Workspace identity reset (admin-app-template, @admin-template/\*)
 - [x] pnpm workspace configuration — pnpm install succeeds, 13 workspace projects resolved
 - [x] App layout restructured (web, api)
 - [x] Context files created (9 files)
@@ -191,7 +255,7 @@ Module generator infrastructure (historical — scripts deleted during single-ap
 - [x] CRM row-click detail routing — leads, contacts, companies, and deals now navigate to dedicated detail routes
 - [x] **CRM Module Rewrite — full base CRM**
   - **DB schema**: Added `leads`, `crmActivities`, `dealStageKindEnum` (`open` / `won` / `lost`), `crmActivityTypeEnum`, and `crmActivityEntityTypeEnum`. Updated `companies` with `status`; updated `dealStages` with `kind`, `deletedAt`, `createdBy`, `updatedBy`; updated contact defaults
-  - **Shared schemas** (`@labq-modules/schemas`): Added lead, activity, and stage schemas plus lead-conversion validation
+  - **Shared schemas** (`@admin-template/schemas`): Added lead, activity, and stage schemas plus lead-conversion validation
   - **Backend API** (`packages/api/src/routers/crm.ts`): Full rewrite with typed Zod input schemas, `requirePermission` on CRM handlers, audit logging on writes, lead conversion, stage admin, activities, and richer summary metrics
   - **Router index** (`packages/api/src/routers/index.ts`): Added `leads`, `stages`, and `activities` to the CRM router
   - **Auth seed** (`packages/auth/src/seed.ts`): Updated stage seeding for `kind` plus audit columns
@@ -218,6 +282,7 @@ Module generator infrastructure (historical — scripts deleted during single-ap
 7. Workspace typecheck cleanup (`packages/env/src/web.ts` fails on `import.meta.env` typing in `pnpm check-types` as of 2026-06-20)
 8. ~~E2E run for data-table URL-state coverage (`e2e/data-table.spec.ts`)~~ (done)
 9. Attachment expansion / entity-specific RBAC if product needs attachments beyond CRM contacts
+
 ## Architecture Summary
 
 ```

@@ -106,7 +106,7 @@ packages/
 
 ```typescript
 import { Resend } from "resend";
-import { env } from "@labq-modules/env/server";
+import { env } from "@admin-template/env/server";
 
 export const resend = new Resend(env.RESEND_API_KEY);
 ```

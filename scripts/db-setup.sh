@@ -24,7 +24,7 @@ elif [ -f "$PROJECT_ROOT/apps/server/.env" ]; then
 fi
 
 # Default values
-DB_NAME=${POSTGRES_DB:-labq_modules_dev}
+DB_NAME=${POSTGRES_DB:-admin_app_template_dev}
 DB_USER=${POSTGRES_USER:-postgres}
 DB_PASSWORD=${POSTGRES_PASSWORD:-postgres}
 DB_PORT=${POSTGRES_PORT:-5432}

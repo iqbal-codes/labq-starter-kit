@@ -75,10 +75,10 @@ Added `className` prop for custom styling flexibility
 
 ### Import Paths Used
 
-- `@labq-modules/ui/components/sidebar` - Sidebar primitives
-- `@labq-modules/ui/components/dropdown-menu` - Dropdown components
-- `@labq-modules/ui/components/avatar` - Avatar components
-- `@labq-modules/ui/components/collapsible` - Collapsible for nested menus
+- `@admin-template/ui/components/sidebar` - Sidebar primitives
+- `@admin-template/ui/components/dropdown-menu` - Dropdown components
+- `@admin-template/ui/components/avatar` - Avatar components
+- `@admin-template/ui/components/collapsible` - Collapsible for nested menus
 - `@/lib/auth-client` - useSession, signOut
 - `@/hooks/use-nav` - useFilteredNavGroups
 - `@/config/nav-config` - Navigation structure
@@ -111,7 +111,7 @@ const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
 
 - next/navigation for usePathname
 - lucide-react for icons
-- @labq-modules/ui components
+- @admin-template/ui components
 - @/lib/auth-client for session management
 
 ## Next Steps

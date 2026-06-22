@@ -25,7 +25,7 @@ apps/web (Next.js)
 ├── proxy.ts           # Middleware: session check, auth redirects, i18n
 ├── /auth/sign-in      # Login page → SignInForm component
 ├── /auth/sign-up      # Registration page
-└── /api/auth/[...auth] # Delegates to @labq-modules/auth
+└── /api/auth/[...auth] # Delegates to @admin-template/auth
 
 packages/auth
 └── createAuth()      # Better Auth config with:
@@ -64,7 +64,7 @@ Better Auth provides a **first-party `testUtils()` plugin** for E2E testing:
 // packages/auth/src/test.ts  (separate test config)
 import { betterAuth } from "better-auth";
 import { testUtils } from "better-auth/plugins";
-import { db } from "@labq-modules/db";
+import { db } from "@admin-template/db";
 import { authSchema } from "./schema";
 
 export const testAuth = betterAuth({
@@ -169,8 +169,8 @@ pnpm playwright install chromium --with-deps
 // packages/auth/src/test.ts
 import { betterAuth } from "better-auth";
 import { testUtils } from "better-auth/plugins";
-import { db } from "@labq-modules/db";
-import * as schema from "@labq-modules/db/src/schema";
+import { db } from "@admin-template/db";
+import * as schema from "@admin-template/db/src/schema";
 
 export const testAuth = betterAuth({
 	database: drizzleAdapter(db, { provider: "pg", schema }),

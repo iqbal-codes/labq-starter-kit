@@ -66,6 +66,7 @@
 - ~~Module code generator~~ (repo-local `pnpm create:module` script, CRM-pattern templates, strict registry patching, auto-port selection)
 - ~~Agentic AI assistant integration~~ (Mastra-backed shell assistant with history replay, tool approvals, and dedicated Playwright coverage)
 - ~~Mastra persistence schema isolation~~ (`mastra` schema, `schemaFilter: ["public"]`, and startup migration of stray `public.mastra_*` tables)
+
 ## Phase 11: Organization Onboarding ✅
 
 - Removed automatic organization creation from signup (`user-create-after.ts`, `databaseHooks.user.create.after`)
@@ -73,7 +74,7 @@
 - Added `OrganizationRoute` guard — redirects to `/onboarding` if no active org in session
 - Sidebar brand converted to organization selector (`SidebarBrand`) — dropdown with org list, switch active org, create new org
 - Added `organization.create` procedure with slug generation (`slugifyOrganizationName`), unique slug resolution, and transactional workspace table initialization (`insertInitialWorkspaceTables`)
-- Added `createOrganizationSchema` in `@labq-modules/schemas`
+- Added `createOrganizationSchema` in `@admin-template/schemas`
 - Exported `DEFAULT_DEAL_STAGES` and `insertInitialWorkspaceTables` from `packages/auth/src/seed.ts`
 - Removed `repair-orphaned-workspace.ts` and `repair:orphaned-workspace` script
 - Removed stale `Modules` nav item from sidebar user menu

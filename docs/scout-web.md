@@ -17,7 +17,7 @@
 13. `apps/web/src/components/auth/sign-in-form.tsx` (all lines) — full sign-in UI: Google OAuth, email/password via better-auth, TanStack Form
 14. `apps/web/src/components/auth/sign-up-form.tsx` (all lines) — full sign-up UI: Google OAuth, email/password via better-auth, TanStack Form
 15. `apps/web/src/lib/auth-client.ts` (all lines) — **auth client singleton**: wraps `better-auth/react` with organization plugin
-16. `apps/web/src/app/api/auth/[...auth]/route.ts` (all lines) — **API route handler**: delegates to `@labq-modules/auth` via `toNextJsHandler`
+16. `apps/web/src/app/api/auth/[...auth]/route.ts` (all lines) — **API route handler**: delegates to `@admin-template/auth` via `toNextJsHandler`
 17. `apps/web/src/app/[locale]/layout.tsx` (all lines) — locale layout: validates locale, loads i18n messages
 18. `apps/web/src/app/[locale]/dashboard/layout.tsx` (all lines) — dashboard layout: sidebar, header, cookie-based sidebar state
 19. `apps/web/src/app/[locale]/dashboard/page.tsx` (all lines) — dashboard page: server-side session fetch, ORPC data
@@ -100,11 +100,11 @@ Request → session check via auth.api.getSession()
 │               apps/web (Next.js 16)          │
 │                                                │
 │  proxy.ts (middleware)                         │
-│   ├─ Session check via @labq-modules/auth  │
+│   ├─ Session check via @admin-template/auth  │
 │   ├─ Auth protection + redirects               │
 │   └─ i18n routing (next-intl)                  │
 │                                                │
-│  /api/auth/[...auth] → @labq-modules/auth  │
+│  /api/auth/[...auth] → @admin-template/auth  │
 │     (better-auth handler)                      │
 │                                                │
 │  Root layout → Providers stack:                │
@@ -119,13 +119,13 @@ Request → session check via auth.api.getSession()
 │   /[locale]/dashboard/** → i18n dashboard      │
 ├──────────────────────────────────────────────┤
 │                 packages                       │
-│  @labq-modules/auth   (better-auth setup)  │
-│  @labq-modules/env    (env schemas)         │
-│  @labq-modules/ui     (shadcn components)   │
-│  @labq-modules/api    (Hono backend)        │
-│  @labq-modules/db     (Drizzle ORM)         │
-│  @labq-modules/email  (Resend)              │
-│  @labq-modules/config (shared config)       │
+│  @admin-template/auth   (better-auth setup)  │
+│  @admin-template/env    (env schemas)         │
+│  @admin-template/ui     (shadcn components)   │
+│  @admin-template/api    (Hono backend)        │
+│  @admin-template/db     (Drizzle ORM)         │
+│  @admin-template/email  (Resend)              │
+│  @admin-template/config (shared config)       │
 └──────────────────────────────────────────────┘
 ```
 

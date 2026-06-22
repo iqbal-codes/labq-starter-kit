@@ -1,4 +1,4 @@
-# LabQ Modules
+# Admin App Template
 
 Modular internal tools platform — multi-tenant, organization-scoped business apps (CRM, Inventory) with a built-in AI assistant. Built as a developer-first starter kit inspired by Odoo's breadth but with modern React architecture.
 

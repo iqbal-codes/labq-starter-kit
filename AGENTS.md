@@ -23,7 +23,7 @@ If any file is missing or clearly stale, repair context first before trusting im
 - Context first. Then planning. Then building.
 - `context/` files are project operating system, not optional notes.
 - Prefer existing package boundaries and shared utilities over new abstractions.
-- Use token-based styling from `@labq-modules/ui`; no hardcoded hex or raw Tailwind palette classes.
+- Use token-based styling from `@admin-template/ui`; no hardcoded hex or raw Tailwind palette classes.
 - Update `context/progress-tracker.md` after every meaningful feature.
 - Update `context/ui-registry.md` after new reusable UI patterns or components.
 - Before changing third-party-library-backed code, load installed skill first when available, then check `context/library-docs.md`.
@@ -39,6 +39,6 @@ If any file is missing or clearly stale, repair context first before trusting im
 - Frontend: Vite React apps (shell-web, crm-web, inventory-web)
 - Auth: Better Auth with Organization plugin
 - DB: Drizzle ORM + PostgreSQL with RLS
-- All code under `@labq-modules/*` workspace scope
+- All code under `@admin-template/*` workspace scope
 
 Future sessions should trust `context/` first, then verify older docs before reusing them.

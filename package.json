@@ -1,5 +1,5 @@
 {
-  "name": "labq-modules",
+  "name": "admin-app-template",
   "private": true,
   "description": "Single-app Internal Tools Platform",
   "type": "module",
@@ -31,16 +31,16 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@labq-modules/env": "workspace:*",
+    "@admin-template/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@admin-template/config": "workspace:*",
+    "@admin-template/types": "workspace:*",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@labq-modules/config": "workspace:*",
-    "@labq-modules/types": "workspace:*",
     "@playwright/test": "^1.60.0",
     "@types/node": "25.9.3",
     "tsx": "^4.19.0",

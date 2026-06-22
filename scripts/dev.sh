@@ -18,7 +18,7 @@ if [ -f "$PROJECT_ROOT/.env" ]; then
 fi
 
 DB_CONTAINER="${POSTGRES_CONTAINER:-postgres-local}"
-DB_NAME="${POSTGRES_DB:-labq_modules_dev}"
+DB_NAME="${POSTGRES_DB:-admin_app_template_dev}"
 DB_USER="${POSTGRES_USER:-postgres}"
 DB_PASSWORD="${POSTGRES_PASSWORD:-postgres}"
 DB_PORT="${POSTGRES_PORT:-5432}"
@@ -55,7 +55,7 @@ ensure_database_exists() {
 
 push_schema() {
   cd "$PROJECT_ROOT"
-  pnpm --filter @labq-modules/db db:push
+  pnpm --filter @admin-template/db db:push
 }
 
 run_schema_setup() {
@@ -96,4 +96,4 @@ echo "MinIO ready"
 echo ""
 
 echo "Starting workspace dev servers..."
-exec pnpm -r --parallel --filter '@labq-modules/api-server' --filter '@labq-modules/web' dev
+exec pnpm -r --parallel --filter '@admin-template/api-server' --filter '@admin-template/web' dev

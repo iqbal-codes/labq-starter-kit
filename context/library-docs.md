@@ -67,8 +67,8 @@
 
 - `useAppForm({ defaultValues, validators: { onSubmit: schema }, onSubmit })`
 - `useFormFields<FormValues>()` returns typed field components
-- Canonical import: `@labq-modules/ui/components/forms/use-form-hooks` (hooks) and `@labq-modules/ui/components/forms/form-context` (primitives)
-- Legacy barrel at `@labq-modules/ui/components/forms/tanstack-form` re-exports everything for backwards compat
+- Canonical import: `@admin-template/ui/components/forms/use-form-hooks` (hooks) and `@admin-template/ui/components/forms/form-context` (primitives)
+- Legacy barrel at `@admin-template/ui/components/forms/tanstack-form` re-exports everything for backwards compat
 - Field components include `FormTextField`, `FormSelectField`, `FormTextareaField`, `FormNumberField`
 - Validation: `validators: { onSubmit: z.object({...}) }` for form-level rules
 - Field validation: `validators: { onBlur, onChangeAsync }` for per-field rules
@@ -76,15 +76,18 @@
 
 ## TanStack Query
 
-- `useQuery(orpc.route.queryOptions({ input }))`
-- `useMutation(...)` with `onSuccess` invalidation
-- Query keys: `orpc.route.queryKey()`
+- Query abstractions use `queryOptions`/`mutationOptions` factories in per-feature `api/queries.ts` + `api/mutations.ts` files
+- Factories use oRPC's `.queryOptions()` and `.mutationOptions()` methods directly (not TanStack Query's `queryOptions()`)
+- Key factories co-located in `queries.ts`: `<entity>Keys = { all, lists, list, details, detail }`
+- Hook (`useEntityDataTable`) uses `useQueryClient()` from React context for invalidation (not `getQueryClient()` from UI package)
+- Composition at call site via spread: `useMutation({ ...factory(), onSuccess: ... })`
+- See `.agents/skills/shadcn-dashboard/references/query-abstractions.md` for full rationale
 
 ## TanStack Table
 
 - `ColumnDef<T>` powers the shared DataTable wrapper
 - `columnDef.meta.variant` selects the filter UI (`text`, `select`, `date`, `slider`)
-- Pages keep columns close to feature code; shared table chrome lives in `@labq-modules/ui/components/table`
+- Pages keep columns close to feature code; shared table chrome lives in `@admin-template/ui/components/table`
 
 ## nuqs
 
@@ -109,12 +112,12 @@
 - CSV parsing and serialization library
 - `Papa.parse(file, { header: true, skipEmptyLines: true })` for CSV → objects
 - `Papa.unparse({ fields, data })` for objects → CSV string
-- Used in `@labq-modules/ui/lib/csv` for shared import/export utilities
+- Used in `@admin-template/ui/lib/csv` for shared import/export utilities
 - Note: parsing `File` objects in Node test environments needs browser-compatible APIs
 
 ## react-dropzone
 
-- Underpins `@labq-modules/ui/components/file-uploader`
+- Underpins `@admin-template/ui/components/file-uploader`
 - Used for CSV import and CRM contact attachment upload flows
 
 ## recharts
@@ -127,7 +130,7 @@
 - Shared validation layer for backend input validation and frontend form validation
 - `z.object({...})` for object schemas, `.partial()` for optional fields, `.omit()` for subsets
 - `safeParse()` powers non-throwing row validation in import dialogs
-- Shared schemas live in `@labq-modules/schemas`; UI consumes them directly where helpful
+- Shared schemas live in `@admin-template/schemas`; UI consumes them directly where helpful
 
 ## @aws-sdk/client-s3
 

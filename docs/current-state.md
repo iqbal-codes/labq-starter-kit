@@ -74,7 +74,7 @@ export const authClient = createAuthClient({
 ## 2. Database / ORM
 
 **ORM:** Drizzle ORM (node-postgres driver)
-**Database:** PostgreSQL (shared local Docker container `postgres-local` — `postgresql://postgres:postgres@localhost:5432/labq_modules_dev`)
+**Database:** PostgreSQL (shared local Docker container `postgres-local` — `postgresql://postgres:postgres@localhost:5432/admin_app_template_dev`)
 
 ### Connection — `packages/db/src/index.ts`
 
@@ -323,7 +323,7 @@ The skill at `.agents/skills/better-auth-best-practices/SKILL.md` covers:
 | Database           | PostgreSQL (Docker) + Drizzle ORM         | ✅ Schema defined             |
 | Auth               | Better Auth 1.6.11                        | ✅ Server + client configured |
 | i18n               | next-intl 4.12                            | ✅ en + id locales            |
-| UI library         | shadcn/ui (via @labq-modules/ui)             | ✅ Components in use          |
+| UI library         | shadcn/ui (via @admin-template/ui)             | ✅ Components in use          |
 | Email              | Resend                                    | ✅ Integration in auth        |
 | Analytics          | PostHog                                   | ✅ Provider component         |
 | Error tracking     | Sentry                                    | ✅ Server + web configured    |

@@ -26,12 +26,12 @@ export default defineConfig({
 
   webServer: [
     {
-      command: "pnpm --filter @labq-modules/api-server dev",
+      command: "pnpm --filter @admin-template/api-server dev",
       port: 4000,
       reuseExistingServer: true,
     },
     {
-      command: "pnpm --filter @labq-modules/web dev",
+      command: "pnpm --filter @admin-template/web dev",
       port: 3100,
       reuseExistingServer: true,
     },

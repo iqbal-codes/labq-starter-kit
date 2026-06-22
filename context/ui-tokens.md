@@ -1,6 +1,6 @@
 # UI Tokens
 
-All UI styling comes from `@labq-modules/ui`, with the token source defined in `packages/ui/src/styles/globals.css`.
+All UI styling comes from `@admin-template/ui`, with the token source defined in `packages/ui/src/styles/globals.css`.
 
 ## Color System
 
@@ -28,4 +28,4 @@ All UI styling comes from `@labq-modules/ui`, with the token source defined in `
 
 ## Components
 
-Use `@labq-modules/ui` primitives and semantic classes rather than raw palette utilities or hardcoded color values.
+Use `@admin-template/ui` primitives and semantic classes rather than raw palette utilities or hardcoded color values.

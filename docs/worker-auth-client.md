@@ -21,7 +21,7 @@ Updated `/Users/efishery/Documents/workspace/projects/karir-fit/apps/web/src/lib
 ## Updated File Content
 
 ```typescript
-import { env } from "@labq-modules/env/web";
+import { env } from "@admin-template/env/web";
 import { createAuthClient } from "better-auth/react";
 import { organizationClient } from "better-auth/client/plugins";
 

@@ -1,5 +1,5 @@
 {
-  "name": "@labq-modules/web",
+  "name": "@admin-template/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,12 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@admin-template/api-client": "workspace:*",
+    "@admin-template/schemas": "workspace:*",
+    "@admin-template/types": "workspace:*",
+    "@admin-template/ui": "workspace:*",
     "@ai-sdk/react": "^3.0.210",
     "@dnd-kit/core": "^6.3.1",
-    "@labq-modules/api-client": "workspace:*",
-    "@labq-modules/schemas": "workspace:*",
-    "@labq-modules/types": "workspace:*",
-    "@labq-modules/ui": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-table": "catalog:",
     "ai": "^6.0.208",
@@ -29,8 +29,8 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@labq-modules/api": "workspace:*",
-    "@labq-modules/config": "workspace:*",
+    "@admin-template/api": "workspace:*",
+    "@admin-template/config": "workspace:*",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "typescript": "catalog:",

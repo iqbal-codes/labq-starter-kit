@@ -2,7 +2,7 @@
 
 ## Product Positioning
 
-LabQ Modules is an internal-tools platform for building organization-scoped business apps. Built as a developer-first starter kit, it provides a shared shell, auth, permissions, and reusable UI. CRM is the primary business domain. The repo targets developers, agencies, and technical teams who need a solid starting point for internal tools — not a full ERP replacement.
+Admin App Template is an internal-tools platform for building organization-scoped business apps. Built as a developer-first starter kit, it provides a shared shell, auth, permissions, and reusable UI. CRM is the primary business domain. The repo targets developers, agencies, and technical teams who need a solid starting point for internal tools — not a full ERP replacement.
 
 ## What makes this a robust internal-tools platform
 

@@ -8,7 +8,7 @@
 2. `apps/server/src/instrument.ts` (lines 1-19) — Sentry init (imported first for instrumentation).
 3. `apps/server/src/sentry-utils.ts` (lines 1-62) — Sentry helpers: `captureError`, `captureMessage`, `withSentry`.
 4. `apps/server/package.json` — Dependencies: Hono, better-auth, @orpc/server, @ai-sdk/google, Sentry.
-5. `apps/server/tsdown.config.ts` — Bundles with `tsdown`, inlines `@labq-modules/*` packages.
+5. `apps/server/tsdown.config.ts` — Bundles with `tsdown`, inlines `@admin-template/*` packages.
 
 ### API package (routers + context)
 
@@ -19,7 +19,7 @@
 ### Auth package (better-auth)
 
 9. `packages/auth/src/index.ts` (lines 1-50) — `createAuth()` configures better-auth with Drizzle adapter, email/password, social providers (GitHub, Google), email verification via Resend, organization plugin.
-10. `packages/auth/package.json` — depends on better-auth 1.6.11, @labq-modules/db, @labq-modules/email, @labq-modules/env.
+10. `packages/auth/package.json` — depends on better-auth 1.6.11, @admin-template/db, @admin-template/email, @admin-template/env.
 
 ### Database schema (Drizzle + PostgreSQL)
 

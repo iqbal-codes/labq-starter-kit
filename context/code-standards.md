@@ -19,8 +19,8 @@
 ## Frontend
 
 - React 19 with hooks
-- TanStack Query for server state
-- TanStack Form for forms — import hooks from `@labq-modules/ui/components/forms/use-form-hooks`, primitives from `@labq-modules/ui/components/forms/form-context`
+- TanStack Query for server state — query abstractions use `queryOptions`/`mutationOptions` factories in per-feature `api/queries.ts` + `api/mutations.ts` files; use `useQueryClient()` for invalidation (not `getQueryClient()` from UI package)
+- TanStack Form for forms — import hooks from `@admin-template/ui/components/forms/use-form-hooks`, primitives from `@admin-template/ui/components/forms/form-context`
 - TanStack Table + `nuqs` for list/table URL state
 - React Router for navigation
 - Single-app shell with org-scoped routing via `OrganizationRoute` guard
