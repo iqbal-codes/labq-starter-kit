@@ -1,4 +1,4 @@
-import { env } from "@labq-modules/env/server";
+import { env } from "@admin-template/env/server";
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "./schema";

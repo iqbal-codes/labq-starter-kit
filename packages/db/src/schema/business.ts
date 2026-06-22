@@ -1,25 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  index,
-  decimal,
-  integer,
-  unique,
-  pgEnum,
-} from "drizzle-orm/pg-core";
-
-// ── Enums ──────────────────────────────────────────────────────
-
-export const moduleKeyEnum = pgEnum("module_key", ["crm", "inventory"]);
-export const dealStageKindEnum = pgEnum("deal_stage_kind", ["open", "won", "lost"]);
-export const crmActivityTypeEnum = pgEnum("crm_activity_type", ["note", "task", "call", "meeting"]);
-export const crmActivityEntityTypeEnum = pgEnum("crm_activity_entity_type", [
-  "lead",
-  "contact",
-  "company",
-  "deal",
-]);
+import { pgTable, text, timestamp, index, decimal, integer, unique } from "drizzle-orm/pg-core";
 
 // ── Organization Settings ──────────────────────────────────────
 
@@ -38,7 +17,6 @@ export const organizationSettings = pgTable(
   (table) => [index("org_settings_orgId_idx").on(table.organizationId)],
 );
 
-
 // ── Audit Logs ─────────────────────────────────────────────────
 
 export const auditLogs = pgTable(
@@ -55,65 +33,6 @@ export const auditLogs = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("audit_logs_orgId_idx").on(table.organizationId)],
-);
-
-// ── CRM: Leads ─────────────────────────────────────────────────
-
-export const leads = pgTable(
-  "leads",
-  {
-    id: text("id").primaryKey(),
-    organizationId: text("organization_id").notNull(),
-    name: text("name").notNull(),
-    email: text("email"),
-    phone: text("phone"),
-    companyName: text("company_name"),
-    status: text("status").notNull().default("new"),
-    source: text("source"),
-    notes: text("notes"),
-    convertedAt: timestamp("converted_at"),
-    convertedContactId: text("converted_contact_id"),
-    convertedCompanyId: text("converted_company_id"),
-    convertedDealId: text("converted_deal_id"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-    deletedAt: timestamp("deleted_at"),
-    createdBy: text("created_by"),
-    updatedBy: text("updated_by"),
-  },
-  (table) => [
-    index("leads_orgId_idx").on(table.organizationId),
-    index("leads_status_idx").on(table.organizationId, table.status),
-  ],
-);
-
-// ── CRM: Contacts ──────────────────────────────────────────────
-
-export const contacts = pgTable(
-  "contacts",
-  {
-    id: text("id").primaryKey(),
-    organizationId: text("organization_id").notNull(),
-    name: text("name").notNull(),
-    email: text("email"),
-    phone: text("phone"),
-    companyId: text("company_id"),
-    status: text("status").notNull().default("active"),
-    source: text("source"),
-    notes: text("notes"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-    deletedAt: timestamp("deleted_at"),
-    createdBy: text("created_by"),
-    updatedBy: text("updated_by"),
-  },
-  (table) => [index("contacts_orgId_idx").on(table.organizationId)],
 );
 
 // ── Attachments ────────────────────────────────────────────────
@@ -145,73 +64,17 @@ export const attachments = pgTable(
   ],
 );
 
-// ── CRM: Companies ─────────────────────────────────────────────
+// ── Operations: Customers ─────────────────────────────────────
 
-export const companies = pgTable(
-  "companies",
+export const customers = pgTable(
+  "customers",
   {
     id: text("id").primaryKey(),
     organizationId: text("organization_id").notNull(),
     name: text("name").notNull(),
-    status: text("status").notNull().default("prospect"),
-    industry: text("industry"),
-    website: text("website"),
     email: text("email"),
     phone: text("phone"),
-    address: text("address"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-    deletedAt: timestamp("deleted_at"),
-    createdBy: text("created_by"),
-    updatedBy: text("updated_by"),
-  },
-  (table) => [
-    index("companies_orgId_idx").on(table.organizationId),
-    index("companies_status_idx").on(table.organizationId, table.status),
-  ],
-);
-
-// ── CRM: Deal Stages ──────────────────────────────────────────
-
-export const dealStages = pgTable(
-  "deal_stages",
-  {
-    id: text("id").primaryKey(),
-    organizationId: text("organization_id").notNull(),
-    name: text("name").notNull(),
-    kind: dealStageKindEnum("kind").notNull().default("open"),
-    sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-    deletedAt: timestamp("deleted_at"),
-    createdBy: text("created_by"),
-    updatedBy: text("updated_by"),
-  },
-  (table) => [
-    index("deal_stages_orgId_idx").on(table.organizationId),
-    unique("deal_stages_orgId_name_unique").on(table.organizationId, table.name),
-  ],
-);
-
-// ── CRM: Deals ─────────────────────────────────────────────────
-
-export const deals = pgTable(
-  "deals",
-  {
-    id: text("id").primaryKey(),
-    organizationId: text("organization_id").notNull(),
-    title: text("title").notNull(),
-    companyId: text("company_id"),
-    contactId: text("contact_id"),
-    value: decimal("value", { precision: 15, scale: 2 }),
-    stageId: text("stage_id"),
-    expectedCloseDate: text("expected_close_date"),
+    status: text("status").notNull().default("active"),
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -222,24 +85,23 @@ export const deals = pgTable(
     createdBy: text("created_by"),
     updatedBy: text("updated_by"),
   },
-  (table) => [index("deals_orgId_idx").on(table.organizationId)],
+  (table) => [
+    index("customers_orgId_idx").on(table.organizationId),
+    index("customers_status_idx").on(table.organizationId, table.status),
+  ],
 );
 
-// ── CRM: Activities ────────────────────────────────────────────
+// ── Operations: Services ──────────────────────────────────────
 
-export const crmActivities = pgTable(
-  "crm_activities",
+export const services = pgTable(
+  "services",
   {
     id: text("id").primaryKey(),
     organizationId: text("organization_id").notNull(),
-    entityType: crmActivityEntityTypeEnum("entity_type").notNull(),
-    entityId: text("entity_id").notNull(),
-    type: crmActivityTypeEnum("type").notNull().default("note"),
-    title: text("title").notNull(),
-    details: text("details"),
-    dueAt: timestamp("due_at"),
-    occurredAt: timestamp("occurred_at"),
-    completedAt: timestamp("completed_at"),
+    name: text("name").notNull(),
+    description: text("description"),
+    status: text("status").notNull().default("active"),
+    price: decimal("price", { precision: 15, scale: 2 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -250,8 +112,36 @@ export const crmActivities = pgTable(
     updatedBy: text("updated_by"),
   },
   (table) => [
-    index("crm_activities_orgId_idx").on(table.organizationId),
-    index("crm_activities_entity_idx").on(table.organizationId, table.entityType, table.entityId),
+    index("services_orgId_idx").on(table.organizationId),
+    index("services_status_idx").on(table.organizationId, table.status),
   ],
 );
 
+// ── Operations: Orders ────────────────────────────────────────
+
+export const orders = pgTable(
+  "orders",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id").notNull(),
+    title: text("title").notNull(),
+    customerId: text("customer_id"),
+    serviceId: text("service_id"),
+    status: text("status").notNull().default("draft"),
+    totalAmount: decimal("total_amount", { precision: 15, scale: 2 }),
+    dueDate: text("due_date"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    deletedAt: timestamp("deleted_at"),
+    createdBy: text("created_by"),
+    updatedBy: text("updated_by"),
+  },
+  (table) => [
+    index("orders_orgId_idx").on(table.organizationId),
+    index("orders_status_idx").on(table.organizationId, table.status),
+  ],
+);

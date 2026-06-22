@@ -1,5 +1,5 @@
 {
-  "name": "@labq-modules/db",
+  "name": "@admin-template/db",
   "type": "module",
   "exports": {
     ".": {
@@ -17,13 +17,13 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "@labq-modules/env": "workspace:*",
+    "@admin-template/env": "workspace:*",
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
     "pg": "^8.17.1"
   },
   "devDependencies": {
-    "@labq-modules/config": "workspace:*",
+    "@admin-template/config": "workspace:*",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8",
     "typescript": "catalog:"
