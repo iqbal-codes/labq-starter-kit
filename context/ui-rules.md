@@ -4,7 +4,7 @@
 2. No hardcoded colors — use semantic classes backed by the shared CSS variable tokens.
 3. No raw Tailwind palette classes (`bg-red-500`, `bg-zinc-100`, etc.).
 4. Responsive behavior should use Tailwind responsive prefixes, not separate markup trees.
-5. Forms use the TanStack Form patterns from `@admin-template/ui/components/forms/tanstack-form`.
+5. Forms use the TanStack Form patterns from `@admin-template/ui/components/forms/use-form-hooks`.
 6. Data tables use TanStack Table + `nuqs` URL state + the shared DataTable helpers.
 7. Column filters should come from `columnDef.meta.variant` and the shared filter components (`text`, `select`, `date`, `slider`).
 8. Toast notifications use `sonner`.
