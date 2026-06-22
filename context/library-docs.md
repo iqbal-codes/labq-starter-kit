@@ -49,14 +49,6 @@
 - Drives schema lifecycle in `packages/db` (`db:generate`, `db:migrate`, `db:push`, `db:studio`)
 - `drizzle-kit push --force` can accept destructive changes automatically; this repo now constrains it to `schemaFilter: ["public"]` so Mastra-owned tables in schema `mastra` are left alone
 
-## @module-federation/vite
-
-- Host remotes format: `{ type: "module", name, entry, entryGlobalName, shareScope }`
-- Remote exposes: `{ name, filename: "remoteEntry.js", exposes: { "./module": "./src/module.tsx" } }`
-- Shared singletons: `react`, `react-dom`, `react-router-dom`, `@tanstack/react-query`, `nuqs`
-- Remote must set `server.origin` for correct `remoteEntry.js` URLs
-- Remote routes stay relative when shell mounts them at `/*`
-
 ## vite-plus (`vp`)
 
 - Workspace runner used from the repo root (`vp run -r check-types`, `vp dev apps/web`, `vp run --filter ./packages/db db:push`)
@@ -95,6 +87,12 @@
 - `apps/web/src/module.tsx` re-wraps its `<Routes>` in a local `NuqsAdapter` so URL state stays live even if the shared-scope adapter fails to resolve from the remote
 - Feature pages use `useQueryStates(...)` + parser helpers to keep table pagination, filters, and sorting in the URL
 - `useDataTable` debounces filter URL writes (300ms default) and routes text-variant column filters to a single `search` query key
+
+## next-themes
+
+- Shell theme state is managed by `ThemeProvider` from `@admin-template/ui/components/theme-provider`, which wraps `next-themes` with `attribute="class"`, `defaultTheme="system"`, `enableSystem`, and `enableColorScheme`
+- `setTheme("light" | "dark")` persists the explicit preference to `localStorage.theme`; when unset, `defaultTheme="system"` resolves from `prefers-color-scheme`
+- `packages/ui/src/components/animated-theme-toggler.tsx` uses `setTheme(...)` for persistence while still driving its custom view-transition animation from the root `.dark` class
 
 ## @dnd-kit/\*
 
@@ -152,10 +150,36 @@
 - `packages/email/src/templates/verification.tsx` renders the verification email with React Email components
 - Email is a supporting package; most app flows still work without a configured Resend client in local development
 
+## react-router-dom
+
+- Primary client-side router for the single-app shell
+- Routes defined in `apps/web/src/App.tsx` using `<Routes>` / `<Route>` with nested layouts
+- `useNavigate`, `useParams`, `useLocation` for navigation hooks
+- `OrganizationRoute` and `ProtectedRoute` wrap dashboard routes as layout components
+
+## @orpc/client + @orpc/tanstack-query + @orpc/openapi
+
+- Client-side oRPC packages powering the typed API layer
+- `@orpc/client` provides the RPC client that connects to the backend's `/rpc/*` and `/api/*` mounts
+- `@orpc/tanstack-query` bridges oRPC procedures into TanStack Query's `queryOptions` / `mutationOptions` factories
+- `@orpc/openapi` generates the OpenAPI spec from the router definition
+- Used in `packages/api-client` which re-exports the typed client and router types
+
+## @base-ui/react
+
+- MUI's headless component library (unstyled primitives)
+- Used by `packages/ui` for accessible dialog, menu, popover, and tooltip foundations
+- Provides the low-level accessible behavior that shadcn/ui components wrap with Tailwind styling
+
+## next-intl
+
+- Internationalization library used in `packages/ui` for locale-aware formatting
+- Provides translation helpers and locale detection for UI components
+
 ## tsx
 
-- Root `create:module` script uses `tsx scripts/create-module.ts` to run the TypeScript generator without a build step
-- Keep it as dev tooling only; generated app code should still be checked with each app's `tsc --noEmit` script
+- TypeScript execution runtime used for dev tooling scripts
+- Keep it as dev tooling only; app code should still be checked with each app's `tsc --noEmit` script
 
 ## react-doctor
 
