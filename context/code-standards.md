@@ -5,7 +5,7 @@
 - Strict mode enabled
 - Avoid `any`; new code should not use `as any` casts
 - Named types over `ReturnType` patterns
-- Business tables are organization-scoped; CRM tables carry `deletedAt` / `createdBy` / `updatedBy`
+- Business tables are organization-scoped; operations tables carry `deletedAt` / `createdBy` / `updatedBy`
 
 ## Backend
 
@@ -14,7 +14,7 @@
 - Audit logging happens on write operations
 - Server-side validation uses Zod schemas
 - Error codes stay as string literals from shared `ERROR_CODES`
-- CRM handlers call `requirePermission(context, permission)` at the start of the handler, before DB work
+- Operations handlers call `requirePermission(context, permission)` at the start of the handler, before DB work
 
 ## Frontend
 
