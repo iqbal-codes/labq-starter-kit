@@ -1,5 +1,5 @@
 {
-  "name": "@labq-modules/api-client",
+  "name": "@admin-template/api-client",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,6 +10,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@admin-template/types": "workspace:*",
     "@orpc/client": "catalog:",
     "@orpc/tanstack-query": "catalog:",
     "@tanstack/react-query": "catalog:",

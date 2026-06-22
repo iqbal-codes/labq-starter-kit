@@ -1,5 +1,5 @@
 // ── Module Keys ──────────────────────────────────────────────
-export const MODULE_KEYS = ["crm"] as const;
+export const MODULE_KEYS = ["operations"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 // ── Role Keys ────────────────────────────────────────────────
@@ -8,13 +8,12 @@ export type RoleKey = (typeof ROLE_KEYS)[number];
 
 // ── Permission Keys ──────────────────────────────────────────
 export const PERMISSION_KEYS = [
-  "crm.view",
-  "crm.create",
-  "crm.update",
-  "crm.delete",
+  "operations.view",
+  "operations.create",
+  "operations.update",
+  "operations.delete",
 ] as const;
 export type PermissionKey = (typeof PERMISSION_KEYS)[number];
-
 
 // ── Error Codes ──────────────────────────────────────────────
 export const ERROR_CODES = [
@@ -32,10 +31,19 @@ export type ErrorCode = (typeof ERROR_CODES)[number];
 export const ROLE_PERMISSION_MAP: Record<RoleKey, readonly PermissionKey[]> = {
   owner: [...PERMISSION_KEYS],
   admin: [...PERMISSION_KEYS],
-  member: ["crm.view", "crm.create", "crm.update"],
-  viewer: ["crm.view"],
+  member: ["operations.view", "operations.create", "operations.update"],
+  viewer: ["operations.view"],
 };
 
 export function getPermissionsForRole(role: string): readonly PermissionKey[] {
   return ROLE_PERMISSION_MAP[role as RoleKey] ?? [];
 }
+
+// ── API Error Response ─────────────────────────────────────
+export type ApiErrorResponse = {
+  error: {
+    code: ErrorCode;
+    message: string;
+    details?: Record<string, unknown>;
+  };
+};

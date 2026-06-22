@@ -1,5 +1,5 @@
 {
-  "name": "@labq-modules/config",
+  "name": "@admin-template/config",
   "version": "0.0.0",
   "private": true,
   "dependencies": {

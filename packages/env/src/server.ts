@@ -24,7 +24,7 @@ export const env = createEnv({
     S3_REGION: z.string().default("us-east-1"),
     S3_ACCESS_KEY_ID: z.string().default("minioadmin"),
     S3_SECRET_ACCESS_KEY: z.string().default("minioadmin"),
-    S3_BUCKET: z.string().default("labq-modules-dev"),
+    S3_BUCKET: z.string().default("admin-app-template-dev"),
     S3_FORCE_PATH_STYLE: z
       .enum(["true", "false"])
       .default("true")
@@ -35,6 +35,8 @@ export const env = createEnv({
       .default(
         "image/png,image/jpeg,image/webp,image/gif,application/pdf,text/plain,text/csv,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       ),
+    RESEND_API_KEY: z.string().optional(),
+    RESEND_FROM_EMAIL: z.string().optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

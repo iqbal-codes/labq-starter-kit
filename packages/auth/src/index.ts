@@ -1,6 +1,6 @@
-import * as schema from "@labq-modules/db/schema/auth";
+import * as schema from "@admin-template/db/schema/auth";
 import { eq, asc } from "drizzle-orm";
-import { env } from "@labq-modules/env/server";
+import { env } from "@admin-template/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";

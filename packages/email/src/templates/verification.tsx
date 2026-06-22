@@ -1,5 +1,4 @@
 // @jsxImportSource react
-import * as React from "react";
 import { Html, Head, Body, Container, Text, Link, Button, Hr, Img } from "@react-email/components";
 
 interface VerificationEmailProps {
@@ -13,7 +12,13 @@ export function VerificationEmail({ name, url }: VerificationEmailProps) {
       <Head />
       <Body style={main}>
         <Container style={container}>
-          <Img src="https://labq.dev/logo.png" width="120" height="40" alt="LabQ" style={logo} />
+          <Img
+            src="https://labq.dev/logo.png"
+            width="120"
+            height="40"
+            alt="Admin App Template"
+            style={logo}
+          />
           <Text style={heading}>Verify your email address</Text>
           <Text style={paragraph}>Hi {name},</Text>
           <Text style={paragraph}>
