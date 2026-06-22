@@ -1,5 +1,5 @@
 import { S3Client } from "@aws-sdk/client-s3";
-import { env } from "@labq-modules/env/server";
+import { env } from "@admin-template/env/server";
 
 let client: S3Client | null = null;
 

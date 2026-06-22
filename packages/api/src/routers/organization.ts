@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
 import { ORPCError } from "@orpc/server";
 import { randomUUID } from "node:crypto";
-import { db } from "@labq-modules/db";
-import { organizationSettings } from "@labq-modules/db/schema/business";
-import { organization as orgTable, member } from "@labq-modules/db/schema/auth";
+import { db } from "@admin-template/db";
+import { organizationSettings } from "@admin-template/db/schema/business";
+import { organization as orgTable, member } from "@admin-template/db/schema/auth";
 import { organizationProcedure, protectedProcedure } from "../index";
-import { createOrganizationSchema } from "@labq-modules/schemas";
-import { insertInitialWorkspaceTables } from "@labq-modules/auth/seed";
+import { createOrganizationSchema } from "@admin-template/schemas";
+import { insertInitialWorkspaceTables } from "@admin-template/auth/seed";
 
 // ── Slug generation ────────────────────────────────────────────
 
@@ -99,17 +99,19 @@ export const organizationRouter = {
     return { organization: { id: organizationId, name, slug } };
   }),
 
-  updateProfile: organizationProcedure.input(createOrganizationSchema).handler(async ({ context, input }) => {
-    const orgId = context.activeOrganization?.id;
-    if (!orgId) throw new ORPCError("ORGANIZATION_REQUIRED");
+  updateProfile: organizationProcedure
+    .input(createOrganizationSchema)
+    .handler(async ({ context, input }) => {
+      const orgId = context.activeOrganization?.id;
+      if (!orgId) throw new ORPCError("ORGANIZATION_REQUIRED");
 
-    const { name } = input;
-    if (!name || typeof name !== "string" || name.trim().length === 0) {
-      throw new ORPCError("VALIDATION_ERROR", { message: "Name is required" });
-    }
+      const { name } = input;
+      if (!name || typeof name !== "string" || name.trim().length === 0) {
+        throw new ORPCError("VALIDATION_ERROR", { message: "Name is required" });
+      }
 
-    await db.update(orgTable).set({ name: name.trim() }).where(eq(orgTable.id, orgId));
+      await db.update(orgTable).set({ name: name.trim() }).where(eq(orgTable.id, orgId));
 
-    return { success: true };
-  }),
+      return { success: true };
+    }),
 };

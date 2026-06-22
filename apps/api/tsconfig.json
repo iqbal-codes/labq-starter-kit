@@ -1,5 +1,5 @@
 {
-  "extends": "@labq-modules/config/tsconfig.base.json",
+  "extends": "@admin-template/config/tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
     "outDir": "dist",

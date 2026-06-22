@@ -1,7 +1,7 @@
 import type { RouterClient } from "@orpc/server";
 import { publicProcedure } from "../index";
 import { organizationRouter } from "./organization";
-import { crmRouter } from "./crm";
+import { operationsRouter } from "./operations";
 
 export const appRouter = {
   healthCheck: publicProcedure.handler(() => "OK"),
@@ -12,16 +12,12 @@ export const appRouter = {
     updateProfile: organizationRouter.updateProfile,
   },
 
-  crm: {
-    summary: crmRouter.summary,
-    leads: crmRouter.leads,
-    contacts: crmRouter.contacts,
-    companies: crmRouter.companies,
-    stages: crmRouter.stages,
-    deals: crmRouter.deals,
-    activities: crmRouter.activities,
+  operations: {
+    summary: operationsRouter.summary,
+    customers: operationsRouter.customers,
+    services: operationsRouter.services,
+    orders: operationsRouter.orders,
   },
-
 };
 
 export type AppRouterClient = RouterClient<typeof appRouter>;

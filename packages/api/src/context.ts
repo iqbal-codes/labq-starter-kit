@@ -1,7 +1,7 @@
-import { auth } from "@labq-modules/auth";
-import { getPermissionsForRole } from "@labq-modules/types";
-import { db } from "@labq-modules/db";
-import { member as memberTable } from "@labq-modules/db/schema/auth";
+import { auth } from "@admin-template/auth";
+import { getPermissionsForRole } from "@admin-template/types";
+import { db } from "@admin-template/db";
+import { member as memberTable } from "@admin-template/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import type { Context as HonoContext } from "hono";
 

@@ -6,6 +6,6 @@ export default defineConfig({
     format: "esm",
     outDir: "./dist",
     clean: true,
-    noExternal: [/@labq-modules\/.*/],
+    noExternal: [/@admin-template\/.*/],
   },
 });

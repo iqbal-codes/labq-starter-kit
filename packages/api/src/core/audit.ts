@@ -1,5 +1,5 @@
-import { db } from "@labq-modules/db";
-import { auditLogs } from "@labq-modules/db/schema/business";
+import { db } from "@admin-template/db";
+import { auditLogs } from "@admin-template/db/schema/business";
 import { randomUUID } from "node:crypto";
 
 export interface AuditParams {

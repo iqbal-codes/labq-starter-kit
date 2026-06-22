@@ -1,4 +1,4 @@
-import type { PermissionKey } from "@labq-modules/types";
+import type { PermissionKey } from "@admin-template/types";
 import type { SessionContext } from "../index";
 import { throwForbidden } from "./errors";
 

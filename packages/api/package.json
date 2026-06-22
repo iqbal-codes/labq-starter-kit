@@ -1,5 +1,5 @@
 {
-  "name": "@labq-modules/api",
+  "name": "@admin-template/api",
   "type": "module",
   "exports": {
     ".": {
@@ -13,19 +13,19 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@admin-template/auth": "workspace:*",
+    "@admin-template/db": "workspace:*",
+    "@admin-template/env": "workspace:*",
+    "@admin-template/schemas": "workspace:*",
+    "@admin-template/types": "workspace:*",
     "@aws-sdk/client-s3": "catalog:",
-    "@labq-modules/auth": "workspace:*",
-    "@labq-modules/db": "workspace:*",
-    "@labq-modules/env": "workspace:*",
-    "@labq-modules/schemas": "workspace:*",
-    "@labq-modules/types": "workspace:*",
     "@orpc/server": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@labq-modules/config": "workspace:*",
+    "@admin-template/config": "workspace:*",
     "hono": "catalog:",
     "typescript": "catalog:"
   }

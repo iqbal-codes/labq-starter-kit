@@ -1,18 +1,11 @@
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { RPCHandler } from "@orpc/server/fetch";
-import { createContext } from "@labq-modules/api/context";
-import { appRouter } from "@labq-modules/api/routers/index";
-import { auth } from "@labq-modules/auth";
-import { env } from "@labq-modules/env/server";
-import { getS3Client, S3_BUCKET } from "@labq-modules/api/core/s3";
-import {
-  assertActiveContact,
-  getActiveContactAttachment,
-  insertContactAttachmentRecord,
-  buildAttachmentStorageKey,
-} from "@labq-modules/api/core/attachments";
-import { writeAudit } from "@labq-modules/api/core/audit";
-import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { createContext } from "@admin-template/api/context";
+import { appRouter } from "@admin-template/api/routers/index";
+import { auth } from "@admin-template/auth";
+import { env } from "@admin-template/env/server";
+import { MODULE_KEYS } from "@admin-template/types";
+import { AppError } from "@admin-template/api/core/errors";
 
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -187,15 +180,11 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 app.post("/api/ai/chat", async (c) => {
   try {
     const context = await createContext({ context: c });
-    console.log("[AI Chat] Request context user ID:", context.session?.user?.id);
-    console.log("[AI Chat] Request context org ID:", context.activeOrganization?.id);
     if (!context.session?.user) {
-      console.log("[AI Chat] Unauthorized - session user missing");
-      return c.json({ error: "Unauthorized" }, 401);
+      throw new AppError("UNAUTHORIZED", "Authentication required");
     }
     if (!context.activeOrganization) {
-      console.log("[AI Chat] Organization required");
-      return c.json({ error: "Organization required" }, 400);
+      throw new AppError("ORGANIZATION_REQUIRED", "Active organization is required");
     }
 
     const { messages, threadId } = (await c.req.json()) as {
@@ -203,26 +192,25 @@ app.post("/api/ai/chat", async (c) => {
       threadId?: string;
     };
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return c.json({ error: "Messages array is required" }, 400);
+      throw new AppError("VALIDATION_ERROR", "Messages array is required", {
+        details: { field: "messages", reason: "must be a non-empty array" },
+      });
     }
 
     const orgId = context.activeOrganization.id;
     const userId = context.session.user.id;
     const resolvedThreadId = resolveAssistantThreadId(orgId, threadId);
 
-
     // Create RequestContext for Mastra tools
     const requestContext = new RequestContext();
     requestContext.set("userId", userId);
     requestContext.set("orgId", orgId);
-    requestContext.set("enabledModules", ["crm"]);
+    requestContext.set("enabledModules", [...MODULE_KEYS]);
     requestContext.set("permissions", context.permissions);
 
     const agent = mastra.getAgentById("labq-assistant");
     const lastMessage = messages[messages.length - 1];
     const prompt = extractPromptFromMessage(lastMessage);
-    console.log("[AI Chat] Incoming messages:", JSON.stringify(messages, null, 2));
-    console.log("[AI Chat] Resolved prompt:", prompt);
 
     // Stream agent response
     const stream = await agent.stream(prompt, {
@@ -246,8 +234,12 @@ app.post("/api/ai/chat", async (c) => {
 
     return createUIMessageStreamResponse({ stream: uiMessageStream });
   } catch (err: unknown) {
-    console.error("[AI Chat] Uncaught error in route:", err);
-    return c.json({ error: "Internal Server Error" }, 500);
+    // Re-throw AppError and known errors; wrap unknowns
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      "INTERNAL_ERROR",
+      err instanceof Error ? err.message : "Chat request failed",
+    );
   }
 });
 
@@ -255,10 +247,10 @@ app.get("/api/ai/chat/history", async (c) => {
   try {
     const context = await createContext({ context: c });
     if (!context.session?.user) {
-      return c.json({ error: "Unauthorized" }, 401);
+      throw new AppError("UNAUTHORIZED", "Authentication required");
     }
     if (!context.activeOrganization) {
-      return c.json({ error: "Organization required" }, 400);
+      throw new AppError("ORGANIZATION_REQUIRED", "Active organization is required");
     }
 
     const requestedThreadId = c.req.query("threadId") || undefined;
@@ -270,7 +262,7 @@ app.get("/api/ai/chat/history", async (c) => {
     const agent = mastra.getAgentById("labq-assistant");
     const memory = await agent.getMemory();
     if (!memory) {
-      throw new Error("Assistant memory is not configured");
+      throw new AppError("INTERNAL_ERROR", "Assistant memory is not configured");
     }
 
     const thread = await memory.getThreadById({ threadId: resolvedThreadId });
@@ -278,7 +270,7 @@ app.get("/api/ai/chat/history", async (c) => {
       return c.json({ threadId: resolvedThreadId, messages: [], total: 0 });
     }
     if (thread.resourceId !== userId) {
-      return c.json({ error: "Thread not found" }, 404);
+      throw new AppError("NOT_FOUND", "Thread not found");
     }
 
     // Pagination params: page is 0-indexed, perPage defaults to 20.
@@ -307,237 +299,95 @@ app.get("/api/ai/chat/history", async (c) => {
 
     return c.json({ threadId: resolvedThreadId, messages: historyMessages, total });
   } catch (err: unknown) {
-    console.error("[AI Chat History] Uncaught error in route:", err);
-    return c.json({ error: "Internal Server Error" }, 500);
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      "INTERNAL_ERROR",
+      err instanceof Error ? err.message : "Failed to load chat history",
+    );
   }
 });
 
 app.post("/api/ai/chat/approve", async (c) => {
-  const context = await createContext({ context: c });
-  if (!context.session?.user) {
-    return c.json({ error: "Unauthorized" }, 401);
+  try {
+    const context = await createContext({ context: c });
+    if (!context.session?.user) {
+      throw new AppError("UNAUTHORIZED", "Authentication required");
+    }
+
+    const { runId, toolCallId, messages } = (await c.req.json()) as {
+      runId?: string;
+      toolCallId?: string;
+      messages?: ChatRequestMessage[];
+    };
+    if (!runId) {
+      throw new AppError("VALIDATION_ERROR", "runId is required", {
+        details: { field: "runId", reason: "required" },
+      });
+    }
+
+    const agent = mastra.getAgentById("labq-assistant");
+    const stream = await agent.approveToolCall({ runId, toolCallId });
+
+    const originalMessages = toOriginalMessages(messages);
+
+    const uiMessageStream = createUIMessageStream({
+      originalMessages,
+      execute: async ({ writer }) => {
+        for await (const part of toAISdkStream(stream, { from: "agent", version: "v6" })) {
+          writer.write(part);
+        }
+      },
+    });
+
+    return createUIMessageStreamResponse({ stream: uiMessageStream });
+  } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      "INTERNAL_ERROR",
+      err instanceof Error ? err.message : "Failed to approve tool call",
+    );
   }
-
-  const { runId, toolCallId, messages } = (await c.req.json()) as {
-    runId?: string;
-    toolCallId?: string;
-    messages?: ChatRequestMessage[];
-  };
-  if (!runId) {
-    return c.json({ error: "runId is required" }, 400);
-  }
-
-  const agent = mastra.getAgentById("labq-assistant");
-  const stream = await agent.approveToolCall({ runId, toolCallId });
-
-  const originalMessages = toOriginalMessages(messages);
-
-  const uiMessageStream = createUIMessageStream({
-    originalMessages,
-    execute: async ({ writer }) => {
-      for await (const part of toAISdkStream(stream, { from: "agent", version: "v6" })) {
-        writer.write(part);
-      }
-    },
-  });
-
-  return createUIMessageStreamResponse({ stream: uiMessageStream });
 });
 
 app.post("/api/ai/chat/decline", async (c) => {
-  const context = await createContext({ context: c });
-  if (!context.session?.user) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-
-  const { runId, toolCallId, messages } = (await c.req.json()) as {
-    runId?: string;
-    toolCallId?: string;
-    messages?: ChatRequestMessage[];
-  };
-  if (!runId) {
-    return c.json({ error: "runId is required" }, 400);
-  }
-
-  const agent = mastra.getAgentById("labq-assistant");
-  const stream = await agent.declineToolCall({ runId, toolCallId });
-
-  const originalMessages = toOriginalMessages(messages);
-
-  const uiMessageStream = createUIMessageStream({
-    originalMessages,
-    execute: async ({ writer }) => {
-      for await (const part of toAISdkStream(stream, { from: "agent", version: "v6" })) {
-        writer.write(part);
-      }
-    },
-  });
-
-  return createUIMessageStreamResponse({ stream: uiMessageStream });
-});
-
-// ── Contact attachment routes (binary transport) ──────────────
-
-app.post("/api/crm/contacts/:contactId/attachments", async (c) => {
-  const context = await createContext({ context: c });
-  if (!context.session?.user) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-  if (!context.activeOrganization) {
-    return c.json({ error: "Organization required" }, 403);
-  }
-
-  const permissions = context.permissions ?? [];
-  if (!permissions.includes("crm.create")) {
-    return c.json({ error: "Forbidden" }, 403);
-  }
-
-  const orgId = context.activeOrganization.id;
-  const userId = context.session.user.id;
-  const contactId = c.req.param("contactId");
-
   try {
-    await assertActiveContact(orgId, contactId);
-  } catch {
-    return c.json({ error: "Contact not found" }, 404);
-  }
-
-  const formData = await c.req.formData();
-  const file = formData.get("file");
-  if (!file || !(file instanceof File)) {
-    return c.json({ error: 'Expected multipart field "file"' }, 400);
-  }
-
-  if (file.size > env.S3_MAX_UPLOAD_BYTES) {
-    return c.json(
-      { error: `File exceeds ${Math.round(env.S3_MAX_UPLOAD_BYTES / 1024 / 1024)}MB limit` },
-      413,
-    );
-  }
-
-  const allowedTypes = env.S3_ALLOWED_MIME_TYPES.split(",").map((t) => t.trim());
-  if (!allowedTypes.includes(file.type)) {
-    return c.json({ error: "File type not allowed" }, 400);
-  }
-
-  const storageKey = buildAttachmentStorageKey(orgId, "crm_contact", contactId, file.name);
-  const body = Buffer.from(await file.arrayBuffer());
-
-  try {
-    const s3 = getS3Client();
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: S3_BUCKET,
-        Key: storageKey,
-        Body: body,
-        ContentType: file.type,
-      }),
-    );
-  } catch (err) {
-    console.error("S3 upload failed:", err);
-    return c.json({ error: "File upload failed" }, 500);
-  }
-
-  try {
-    const row = await insertContactAttachmentRecord({
-      organizationId: orgId,
-      contactId,
-      storageKey,
-      fileName: file.name,
-      mimeType: file.type,
-      sizeBytes: file.size,
-      userId,
-    });
-
-    await writeAudit({
-      organizationId: orgId,
-      userId,
-      moduleKey: "crm",
-      entityType: "contact",
-      entityId: contactId,
-      action: "attachment.upload",
-      metadata: { attachmentId: row.id, fileName: file.name, sizeBytes: file.size, storageKey },
-    });
-
-    return c.json(
-      {
-        id: row.id,
-        entityId: row.entityId,
-        entityType: row.entityType,
-        fileName: row.fileName,
-        mimeType: row.mimeType,
-        sizeBytes: row.sizeBytes,
-        uploadedByName: context.session.user.name,
-        createdAt: row.createdAt.toISOString(),
-      },
-      201,
-    );
-  } catch (metadataErr) {
-    console.error("Metadata insert failed after upload:", metadataErr);
-    try {
-      const s3 = getS3Client();
-      await s3.send(
-        new PutObjectCommand({ Bucket: S3_BUCKET, Key: storageKey, Body: Buffer.alloc(0) }),
-      );
-    } catch {
-      // Best-effort cleanup
-    }
-    return c.json({ error: "Attachment upload failed" }, 500);
-  }
-});
-
-app.get("/api/crm/attachments/:attachmentId/download", async (c) => {
-  const context = await createContext({ context: c });
-  if (!context.session?.user) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-  if (!context.activeOrganization) {
-    return c.json({ error: "Organization required" }, 403);
-  }
-
-  const permissions = context.permissions ?? [];
-  if (!permissions.includes("crm.view")) {
-    return c.json({ error: "Forbidden" }, 403);
-  }
-
-  const orgId = context.activeOrganization.id;
-  const attachmentId = c.req.param("attachmentId");
-
-  let attachment;
-  try {
-    attachment = await getActiveContactAttachment(orgId, attachmentId);
-  } catch {
-    return c.json({ error: "Attachment not found" }, 404);
-  }
-
-  try {
-    const s3 = getS3Client();
-    const response = await s3.send(
-      new GetObjectCommand({
-        Bucket: S3_BUCKET,
-        Key: attachment.storageKey,
-      }),
-    );
-
-    if (!response.Body) {
-      return c.json({ error: "Attachment file not found" }, 404);
+    const context = await createContext({ context: c });
+    if (!context.session?.user) {
+      throw new AppError("UNAUTHORIZED", "Authentication required");
     }
 
-    const webStream = response.Body.transformToWebStream();
-    const contentDisposition = `attachment; filename*=UTF-8''${encodeURIComponent(attachment.fileName)}`;
+    const { runId, toolCallId, messages } = (await c.req.json()) as {
+      runId?: string;
+      toolCallId?: string;
+      messages?: ChatRequestMessage[];
+    };
+    if (!runId) {
+      throw new AppError("VALIDATION_ERROR", "runId is required", {
+        details: { field: "runId", reason: "required" },
+      });
+    }
 
-    return new Response(webStream, {
-      headers: {
-        "Content-Type": attachment.mimeType,
-        "Content-Length": attachment.sizeBytes.toString(),
-        "Content-Disposition": contentDisposition,
+    const agent = mastra.getAgentById("labq-assistant");
+    const stream = await agent.declineToolCall({ runId, toolCallId });
+
+    const originalMessages = toOriginalMessages(messages);
+
+    const uiMessageStream = createUIMessageStream({
+      originalMessages,
+      execute: async ({ writer }) => {
+        for await (const part of toAISdkStream(stream, { from: "agent", version: "v6" })) {
+          writer.write(part);
+        }
       },
     });
-  } catch (err) {
-    if (err instanceof Error && err.name === "NoSuchKey") {
-      return c.json({ error: "Attachment file not found" }, 404);
-    }
-    throw err;
+
+    return createUIMessageStreamResponse({ stream: uiMessageStream });
+  } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      "INTERNAL_ERROR",
+      err instanceof Error ? err.message : "Failed to decline tool call",
+    );
   }
 });
 
@@ -545,6 +395,43 @@ app.get("/api/crm/attachments/:attachmentId/download", async (c) => {
 const apiHandler = new OpenAPIHandler(appRouter);
 
 const rpcHandler = new RPCHandler(appRouter);
+
+/** Log error details from oRPC response bodies for non-2xx statuses. */
+async function logOrcpError(c: any, response: Response) {
+  if (response.status < 400) return;
+  try {
+    const cloned = response.clone();
+    const body = (await cloned.json()) as any;
+    const method = c.req.method;
+    const path = c.req.path;
+
+    console.error(`[ERROR] ${method} ${path} ${response.status}`);
+
+    // oRPC wraps errors in { json: { code, message, data } }
+    const err = body?.json ?? body;
+
+    if (err) {
+      const code = err.code ?? "UNKNOWN";
+      const message = err.message ?? "Unknown error";
+      console.error(`  code: ${code}`);
+      console.error(`  message: ${message}`);
+
+      // oRPC validation errors have data.issues
+      if (err.data?.issues?.length) {
+        for (const issue of err.data.issues) {
+          const field = issue.path?.join(".") ?? "(root)";
+          console.error(`  → ${field}: ${issue.message}`);
+        }
+      } else if (err.data) {
+        console.error(`  data: ${JSON.stringify(err.data)}`);
+      }
+    } else {
+      console.error(`  (empty response body)`);
+    }
+  } catch {
+    console.error(`  (could not read response body)`);
+  }
+}
 
 app.use("/rpc/*", async (c, next) => {
   const context = await createContext({ context: c });
@@ -554,6 +441,7 @@ app.use("/rpc/*", async (c, next) => {
   });
 
   if (matched) {
+    await logOrcpError(c, response);
     return response;
   }
 
@@ -568,6 +456,7 @@ app.use("/api/*", async (c, next) => {
   });
 
   if (matched) {
+    await logOrcpError(c, response);
     return response;
   }
 
@@ -577,8 +466,44 @@ app.use("/api/*", async (c, next) => {
 app.get("/", (c) => c.text("OK"));
 
 app.onError((err, c) => {
-  console.error("API Error:", err);
-  return c.json({ error: "Internal Server Error" }, 500);
+  const method = c.req.method;
+  const path = c.req.path;
+
+  // AppError: known error codes with structured response
+  if (err instanceof AppError) {
+    console.error(`[ERROR] ${method} ${path} ${err.statusCode}`);
+    console.error(`  code: ${err.code}`);
+    console.error(`  message: ${err.message}`);
+    if (err.details) {
+      console.error(`  details: ${JSON.stringify(err.details)}`);
+    }
+    if (process.env.NODE_ENV !== "production") {
+      console.error(`  stack: ${err.stack}`);
+    }
+    return c.json(
+      { error: { code: err.code, message: err.message, details: err.details } },
+      err.statusCode as any,
+    );
+  }
+
+  // HTTPException from Hono
+  if (err instanceof Error && "status" in err && "getResponse" in err) {
+    const status = (err as any).status ?? 500;
+    console.error(`[ERROR] ${method} ${path} ${status}`);
+    console.error(`  message: ${err.message}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.error(`  stack: ${err.stack}`);
+    }
+    return c.json({ error: { code: "INTERNAL_ERROR", message: err.message } }, status);
+  }
+
+  // Unknown error: generic 500
+  console.error(`[ERROR] ${method} ${path} 500`);
+  console.error(`  message: ${err.message ?? "Unknown error"}`);
+  if (process.env.NODE_ENV !== "production" && err.stack) {
+    console.error(`  stack: ${err.stack}`);
+  }
+  return c.json({ error: { code: "INTERNAL_ERROR", message: "Internal Server Error" } }, 500);
 });
 
 export default app;

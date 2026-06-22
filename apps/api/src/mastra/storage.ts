@@ -1,6 +1,6 @@
 import { PostgresStore } from "@mastra/pg";
-import { db } from "@labq-modules/db";
-import { env } from "@labq-modules/env/server";
+import { db } from "@admin-template/db";
+import { env } from "@admin-template/env/server";
 import { sql } from "drizzle-orm";
 
 export const MASTRA_SCHEMA_NAME = "mastra";

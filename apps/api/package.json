@@ -1,5 +1,5 @@
 {
-  "name": "@labq-modules/api-server",
+  "name": "@admin-template/api-server",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
@@ -8,12 +8,12 @@
     "dev": "node --import tsx src/index.ts"
   },
   "dependencies": {
+    "@admin-template/api": "workspace:*",
+    "@admin-template/auth": "workspace:*",
+    "@admin-template/db": "workspace:*",
+    "@admin-template/env": "workspace:*",
     "@aws-sdk/client-s3": "catalog:",
     "@hono/node-server": "^2.0.4",
-    "@labq-modules/api": "workspace:*",
-    "@labq-modules/auth": "workspace:*",
-    "@labq-modules/db": "workspace:*",
-    "@labq-modules/env": "workspace:*",
     "@mastra/ai-sdk": "^1.5.0",
     "@mastra/core": "^1.45.0",
     "@mastra/memory": "^1.21.0",
@@ -25,7 +25,7 @@
     "hono": "catalog:"
   },
   "devDependencies": {
-    "@labq-modules/config": "workspace:*",
+    "@admin-template/config": "workspace:*",
     "tsx": "^4.19.0",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
