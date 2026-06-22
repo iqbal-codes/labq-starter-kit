@@ -1,8 +1,12 @@
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@labq-modules/ui/components/badge";
-import { Button } from "@labq-modules/ui/components/button";
-import type { OptionItem } from "./types";
+import { Badge } from "@admin-template/ui/components/badge";
+import { Button } from "@admin-template/ui/components/button";
+
+type OptionItem = {
+  value: string;
+  label: string;
+};
 
 interface ActionsColumnConfig<TRow> {
   canEdit: boolean;
@@ -16,6 +20,8 @@ export function actionsColumn<TRow>(config: ActionsColumnConfig<TRow>): ColumnDe
     id: "actions",
     header: "Actions",
     enableSorting: false,
+    enableHiding: false,
+    size: 100,
     cell: ({ row }) => (
       <div className="flex gap-2">
         {config.canEdit && (

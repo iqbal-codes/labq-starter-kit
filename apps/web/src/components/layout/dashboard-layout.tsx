@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { SidebarProvider, SidebarInset } from "@labq-modules/ui/components/sidebar";
+import { SidebarProvider, SidebarInset } from "@admin-template/ui/components/sidebar";
 import { AppSidebar } from "./app-sidebar";
 import { Header } from "./header";
 import { AssistantButton } from "../../features/assistant/components/assistant-button";

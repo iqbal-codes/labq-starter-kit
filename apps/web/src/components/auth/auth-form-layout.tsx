@@ -5,7 +5,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@labq-modules/ui/components/card";
+} from "@admin-template/ui/components/card";
 
 interface AuthFormLayoutProps {
   title: string;

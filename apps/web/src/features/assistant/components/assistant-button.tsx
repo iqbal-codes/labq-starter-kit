@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@labq-modules/ui/components/button";
+import { Button } from "@admin-template/ui/components/button";
 import { SparklesIcon } from "lucide-react";
 import { AssistantSheet } from "./assistant-sheet";
 

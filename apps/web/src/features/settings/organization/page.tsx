@@ -1,14 +1,14 @@
 import { useOrganization } from "../../../hooks/use-organization";
-import { Button } from "@labq-modules/ui/components/button";
-import { Input } from "@labq-modules/ui/components/input";
-import { Label } from "@labq-modules/ui/components/label";
+import { Button } from "@admin-template/ui/components/button";
+import { Input } from "@admin-template/ui/components/input";
+import { Label } from "@admin-template/ui/components/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@labq-modules/ui/components/card";
+} from "@admin-template/ui/components/card";
 import { useOrganizationProfile } from "./hooks/use-organization-profile";
 
 export function SettingsOrganizationPage() {

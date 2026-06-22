@@ -1,10 +1,15 @@
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { z } from "zod";
-import { useAppForm, useFormFields } from "@labq-modules/ui/components/forms/use-form-hooks";
+import {
+  useAppForm,
+  useFormFields,
+  FormErrors,
+} from "@admin-template/ui/components/forms/use-form-hooks";
 import { useAuth } from "../../providers/auth-provider";
 import { useAuthRedirect } from "../../hooks/use-auth-redirect";
 import { AuthFormLayout } from "../../components/auth/auth-form-layout";
-import { CardContent } from "@labq-modules/ui/components/card";
+import { CardContent } from "@admin-template/ui/components/card";
 
 const signUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -21,8 +26,28 @@ export function SignUpPage() {
   const form = useAppForm({
     defaultValues: { name: "", email: "", password: "" } as SignUpValues,
     validators: { onSubmit: signUpSchema },
-    onSubmit: async ({ value }) => {
-      await signUp.email({ name: value.name, email: value.email, password: value.password });
+    onSubmit: async ({ value, formApi }) => {
+      try {
+        const { error } = await signUp.email({
+          name: value.name,
+          email: value.email,
+          password: value.password,
+        });
+        if (error) {
+          const message =
+            error.code === "USER_ALREADY_EXISTS"
+              ? "An account with this email already exists"
+              : error.status === 403
+                ? "Please verify your email to continue"
+                : error.message || "Sign-up failed. Please try again.";
+          formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+          toast.error(message);
+        }
+      } catch (err) {
+        const message = "An unexpected error occurred. Please try again.";
+        formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+        toast.error(message);
+      }
     },
   });
 
@@ -31,7 +56,7 @@ export function SignUpPage() {
   return (
     <AuthFormLayout
       title="Create an account"
-      description="Start using LabQ Modules"
+      description="Start using Admin App Template"
       footer={
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
@@ -44,6 +69,7 @@ export function SignUpPage() {
       <form.AppForm>
         <form.Form>
           <CardContent className="space-y-4">
+            <FormErrors />
             <FormTextField name="name" label="Name" placeholder="Your name" required />
             <FormTextField
               name="email"

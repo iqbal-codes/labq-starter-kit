@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { SidebarTrigger } from "@labq-modules/ui/components/sidebar";
-import { Separator } from "@labq-modules/ui/components/separator";
-import { AnimatedThemeToggler } from "@labq-modules/ui/components/animated-theme-toggler";
+import { SidebarTrigger } from "@admin-template/ui/components/sidebar";
+import { Separator } from "@admin-template/ui/components/separator";
+import { AnimatedThemeToggler } from "@admin-template/ui/components/animated-theme-toggler";
 import { useOrganization } from "../../hooks/use-organization";
 import { buildBreadcrumbs, isBreadcrumbNavigable } from "./header-breadcrumbs";
 import {
@@ -12,7 +12,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@labq-modules/ui/components/breadcrumb";
+} from "@admin-template/ui/components/breadcrumb";
 
 export function Header() {
   const location = useLocation();

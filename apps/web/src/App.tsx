@@ -8,16 +8,10 @@ import { OnboardingPage } from "./pages/onboarding";
 import { ShellHomePage } from "./pages/dashboard";
 import { SettingsOrganizationPage } from "./pages/settings/organization";
 import { DashboardLayout } from "./components/layout/dashboard-layout";
-import { OverviewPage } from "./pages/crm-overview";
-import { LeadsPage } from "./pages/leads";
-import { LeadDetailPage } from "./pages/lead-detail";
-import { ContactsPage } from "./pages/contacts";
-import { ContactDetailPage } from "./pages/contact-detail";
-import { CompaniesPage } from "./pages/companies";
-import { CompanyDetailPage } from "./pages/company-detail";
-import { DealsPage } from "./pages/deals";
-import { DealDetailPage } from "./pages/deal-detail";
-import { PipelinePage } from "./pages/pipeline";
+import { OverviewPage } from "./pages/overview";
+import { CustomersPage } from "./pages/customers";
+import { ServicesPage } from "./pages/services";
+import { OrdersPage } from "./pages/orders";
 
 export function App() {
   return (
@@ -32,15 +26,9 @@ export function App() {
               <Route index element={<ShellHomePage />} />
               <Route path="/settings/organization" element={<SettingsOrganizationPage />} />
               <Route path="/overview" element={<OverviewPage />} />
-              <Route path="/leads" element={<LeadsPage />} />
-              <Route path="/leads/:id" element={<LeadDetailPage />} />
-              <Route path="/contacts" element={<ContactsPage />} />
-              <Route path="/contacts/:id" element={<ContactDetailPage />} />
-              <Route path="/companies" element={<CompaniesPage />} />
-              <Route path="/companies/:id" element={<CompanyDetailPage />} />
-              <Route path="/deals" element={<DealsPage />} />
-              <Route path="/deals/:id" element={<DealDetailPage />} />
-              <Route path="/pipeline" element={<PipelinePage />} />
+              <Route path="/customers" element={<CustomersPage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
             </Route>
           </Route>
         </Route>

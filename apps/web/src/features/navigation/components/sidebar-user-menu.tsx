@@ -8,14 +8,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@labq-modules/ui/components/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@labq-modules/ui/components/avatar";
+} from "@admin-template/ui/components/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@admin-template/ui/components/avatar";
 import {
   SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@labq-modules/ui/components/sidebar";
+} from "@admin-template/ui/components/sidebar";
 
 interface SidebarUserMenuProps {
   user: { name?: string; email?: string; image?: string } | null;

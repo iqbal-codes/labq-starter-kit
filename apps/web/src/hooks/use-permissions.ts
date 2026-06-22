@@ -1,5 +1,5 @@
 import { useOrganization } from "./use-organization";
-import type { PermissionKey } from "@labq-modules/types";
+import type { PermissionKey } from "@admin-template/types";
 
 export function usePermissions() {
   const { organization, isLoading } = useOrganization();

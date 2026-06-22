@@ -1,10 +1,15 @@
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { z } from "zod";
-import { useAppForm, useFormFields } from "@labq-modules/ui/components/forms/use-form-hooks";
+import {
+  useAppForm,
+  useFormFields,
+  FormErrors,
+} from "@admin-template/ui/components/forms/use-form-hooks";
 import { useAuth } from "../../providers/auth-provider";
 import { useAuthRedirect } from "../../hooks/use-auth-redirect";
 import { AuthFormLayout } from "../../components/auth/auth-form-layout";
-import { CardContent } from "@labq-modules/ui/components/card";
+import { CardContent } from "@admin-template/ui/components/card";
 
 const signInSchema = z.object({
   email: z.email("Invalid email address"),
@@ -20,8 +25,25 @@ export function SignInPage() {
   const form = useAppForm({
     defaultValues: { email: "", password: "" } as SignInValues,
     validators: { onSubmit: signInSchema },
-    onSubmit: async ({ value }) => {
-      await signIn.email({ email: value.email, password: value.password });
+    onSubmit: async ({ value, formApi }) => {
+      try {
+        const { error } = await signIn.email({
+          email: value.email,
+          password: value.password,
+        });
+        if (error) {
+          const message =
+            error.status === 403
+              ? "Please verify your email before signing in"
+              : error.message || "Sign-in failed. Please try again.";
+          formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+          toast.error(message);
+        }
+      } catch (err) {
+        const message = "An unexpected error occurred. Please try again.";
+        formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+        toast.error(message);
+      }
     },
   });
 
@@ -43,6 +65,7 @@ export function SignInPage() {
       <form.AppForm>
         <form.Form>
           <CardContent className="space-y-4">
+            <FormErrors />
             <FormTextField
               name="email"
               label="Email"

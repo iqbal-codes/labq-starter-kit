@@ -1,16 +1,20 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useAppForm, useFormFields } from "@labq-modules/ui/components/forms/use-form-hooks";
-import { scrollToFirstError } from "@labq-modules/ui/components/forms/tanstack-form";
-import { createOrganizationSchema } from "@labq-modules/schemas";
-import type { CreateOrganizationInput } from "@labq-modules/schemas";
+import { getApiError } from "@admin-template/api-client";
+import {
+  useAppForm,
+  useFormFields,
+  FormErrors,
+} from "@admin-template/ui/components/forms/use-form-hooks";
+import { scrollToFirstError } from "@admin-template/ui/components/forms/tanstack-form";
+import { createOrganizationSchema } from "@admin-template/schemas";
+import type { CreateOrganizationInput } from "@admin-template/schemas";
 import { AuthFormLayout } from "../../components/auth/auth-form-layout";
-import { CardContent } from "@labq-modules/ui/components/card";
+import { CardContent } from "@admin-template/ui/components/card";
 import { authClient } from "../../lib/auth-client";
 import { orpc } from "../../runtime";
 
 export function OnboardingPage() {
-
   const createOrg = useMutation(
     orpc.organization.create.mutationOptions({
       onSuccess: async (result) => {
@@ -25,9 +29,6 @@ export function OnboardingPage() {
           toast.error("Organization created but failed to activate. Please refresh.");
         }
       },
-      onError: () => {
-        toast.error("Unable to create organization");
-      },
     }),
   );
 
@@ -35,8 +36,14 @@ export function OnboardingPage() {
     defaultValues: { name: "" } as CreateOrganizationInput,
     validators: { onSubmit: createOrganizationSchema },
     onSubmitInvalid: () => scrollToFirstError(),
-    onSubmit: async ({ value }) => {
-      await createOrg.mutateAsync(value);
+    onSubmit: async ({ value, formApi }) => {
+      try {
+        await createOrg.mutateAsync(value);
+      } catch (error) {
+        const { message } = getApiError(error);
+        formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+        toast.error(message);
+      }
     },
   });
 
@@ -51,12 +58,8 @@ export function OnboardingPage() {
       <form.AppForm>
         <form.Form>
           <CardContent className="space-y-4">
-            <FormTextField
-              name="name"
-              label="Organization name"
-              placeholder="Acme Labs"
-              required
-            />
+            <FormErrors />
+            <FormTextField name="name" label="Organization name" placeholder="Acme Labs" required />
             <form.SubmitButton className="w-full" disabled={createOrg.isPending}>
               {createOrg.isPending ? "Creating..." : "Create organization"}
             </form.SubmitButton>

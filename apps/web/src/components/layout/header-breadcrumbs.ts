@@ -14,7 +14,7 @@ export function buildBreadcrumbs(
   const segments = pathname.split("/").filter(Boolean);
   const breadcrumbs: BreadcrumbItemDescriptor[] = [
     {
-      title: organizationName ?? "LabQ",
+      title: organizationName ?? "Admin",
       href: "/",
     },
   ];
@@ -24,9 +24,7 @@ export function buildBreadcrumbs(
     currentPath += `/${segment}`;
 
     const title =
-      segment === "settings"
-        ? "Settings"
-        : segment.charAt(0).toUpperCase() + segment.slice(1);
+      segment === "settings" ? "Settings" : segment.charAt(0).toUpperCase() + segment.slice(1);
 
     breadcrumbs.push({
       title,

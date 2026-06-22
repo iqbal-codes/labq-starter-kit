@@ -1,17 +1,14 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { orpc } from "../../../../runtime";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { updateOrganizationProfileMutation } from "../../../organization/api/mutations";
 
 export function useOrganizationProfile(organizationName: string) {
-  const queryClient = useQueryClient();
   const [name, setName] = useState(organizationName);
 
   const updateProfile = useMutation({
-    mutationFn: (data: { name: string }) =>
-      (orpc.organization.updateProfile as any).mutateAsync(data),
+    ...updateOrganizationProfileMutation(),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: orpc.organization.getContext.queryKey() });
       toast.success("Organization updated");
     },
   });

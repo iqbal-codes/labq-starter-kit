@@ -1,4 +1,4 @@
-import { Sidebar, SidebarRail } from "@labq-modules/ui/components/sidebar";
+import { Sidebar, SidebarRail } from "@admin-template/ui/components/sidebar";
 import { SidebarBrand } from "../../features/navigation/components/sidebar-brand";
 import { SidebarNav } from "../../features/navigation/components/sidebar-nav";
 import { SidebarUserMenu } from "../../features/navigation/components/sidebar-user-menu";

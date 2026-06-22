@@ -1,45 +1,30 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useQuery } from "@tanstack/react-query";
-import { DefaultChatTransport, safeValidateUIMessages, type UIMessage } from "ai";
+import { DefaultChatTransport, safeValidateUIMessages } from "ai";
+import type { UIMessage } from "ai";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetDescription,
-} from "@labq-modules/ui/components/sheet";
-import { Button } from "@labq-modules/ui/components/button";
-import { Textarea } from "@labq-modules/ui/components/textarea";
+} from "@admin-template/ui/components/sheet";
+import { Button } from "@admin-template/ui/components/button";
+import { Textarea } from "@admin-template/ui/components/textarea";
 import {
   SparklesIcon,
   XIcon,
   SendIcon,
-  CheckIcon,
-  BanIcon,
   Loader2Icon,
-  CalendarIcon,
   ArrowDownIcon,
   ChevronUpIcon,
 } from "lucide-react";
+import { useIsMobile } from "@admin-template/ui/hooks/use-mobile";
 import { useOrganization } from "../../../hooks/use-organization";
 
 interface AssistantSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-interface ToolCallState {
-  toolCallId: string;
-  toolName: string;
-  args: Record<string, unknown>;
-  state: "pending" | "approved" | "declined";
-  isLoading?: boolean;
-  error?: string | null;
-}
-
-interface DataPart {
-  type: string;
-  data: unknown;
 }
 
 interface AssistantHistoryResponse {
@@ -52,19 +37,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function formatToolArg(value: unknown, fallback = ""): string {
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-  if (value == null) {
-    return fallback;
-  }
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return fallback;
-  }
-}
 async function parseAssistantHistoryResponse(value: unknown): Promise<AssistantHistoryResponse> {
   if (!isRecord(value) || typeof value.threadId !== "string") {
     throw new Error("Invalid assistant history response");
@@ -127,8 +99,7 @@ function TypingIndicator() {
 
 export function AssistantSheet({ open, onOpenChange }: AssistantSheetProps) {
   const { organization, isLoading: isOrganizationLoading } = useOrganization();
-  const runIdRef = useRef<string | null>(null);
-  const [activeApprovals, setActiveApprovals] = useState<Record<string, ToolCallState>>({});
+  const isMobile = useIsMobile();
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [scrollViewport, setScrollViewport] = useState<HTMLDivElement | null>(null);
@@ -144,12 +115,6 @@ export function AssistantSheet({ open, onOpenChange }: AssistantSheetProps) {
       api: `${import.meta.env.VITE_API_URL}/api/ai/chat`,
       credentials: "include",
     }),
-    onData(dataPartUnknown) {
-      const dataPart = dataPartUnknown as DataPart;
-      if (dataPart && dataPart.type === "x-mastra-run-id" && typeof dataPart.data === "string") {
-        runIdRef.current = dataPart.data;
-      }
-    },
   });
 
   // Fetch chat history with TanStack Query
@@ -297,205 +262,13 @@ export function AssistantSheet({ open, onOpenChange }: AssistantSheetProps) {
   };
 
   const hasMoreMessages = displayedMessages.length < totalMessages;
-  // Scan messages for tool calls needing approval
-  useEffect(() => {
-    setActiveApprovals((prev) => {
-      const newApprovals = { ...prev };
-      let updated = false;
-
-      for (const message of messages) {
-        if (message.role === "assistant" && message.parts) {
-          for (const part of message.parts) {
-            if (part.type === "tool-create-crm-activity") {
-              const inv = part;
-              const toolCallId = inv.toolCallId;
-              if (!newApprovals[toolCallId]) {
-                newApprovals[toolCallId] = {
-                  toolCallId,
-                  toolName: "create-crm-activity",
-                  args: (inv.input as Record<string, unknown>) || {},
-                  state: inv.state === "output-available" ? "approved" : "pending",
-                  isLoading: false,
-                  error: null,
-                };
-                updated = true;
-              } else if (
-                inv.state === "output-available" &&
-                newApprovals[toolCallId].state === "pending"
-              ) {
-                newApprovals[toolCallId].state = "approved";
-                newApprovals[toolCallId].isLoading = false;
-                newApprovals[toolCallId].error = null;
-                updated = true;
-              }
-            }
-          }
-        }
-      }
-
-      return updated ? newApprovals : prev;
-    });
-  }, [messages]);
-
-  // Custom stream reader to resume assistant responses
-  async function handleResume(toolCallId: string, action: "approve" | "decline") {
-    const runId = runIdRef.current;
-    if (!runId) return;
-
-    setActiveApprovals((prev) => {
-      const existing = prev[toolCallId];
-      if (!existing) return prev;
-      return {
-        ...prev,
-        [toolCallId]: {
-          ...existing,
-          isLoading: true,
-          error: null,
-        },
-      };
-    });
-
-    try {
-      const mappedMessages = messages.map((m) => {
-        const textPart = m.parts.find((p) => p.type === "text");
-        let textContent = "";
-        if (textPart && "text" in textPart && typeof textPart.text === "string") {
-          textContent = textPart.text;
-        }
-        return {
-          id: m.id,
-          role: m.role,
-          content: textContent,
-        };
-      });
-
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/chat/${action}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          runId,
-          toolCallId,
-          messages: mappedMessages,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to ${action} tool call`);
-      }
-
-      const reader = res.body?.getReader();
-      if (!reader) {
-        throw new Error("No response body");
-      }
-
-      const decoder = new TextDecoder();
-      let done = false;
-      let accumulatedText = "";
-
-      // Create a placeholder message or append to the existing last assistant message
-      let assistantMessageIndex = -1;
-      for (let i = messages.length - 1; i >= 0; i--) {
-        const msg = messages[i];
-        if (msg && msg.role === "assistant") {
-          assistantMessageIndex = i;
-          break;
-        }
-      }
-
-      let updatedMessages = [...messages];
-
-      if (assistantMessageIndex === -1) {
-        // If no assistant message, insert one
-        updatedMessages.push({
-          id: `resume-${Date.now()}`,
-          role: "assistant",
-          parts: [{ type: "text", text: "" }],
-        });
-      }
-
-      const targetIndex =
-        assistantMessageIndex === -1 ? updatedMessages.length - 1 : assistantMessageIndex;
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-        if (value) {
-          const chunk = decoder.decode(value, { stream: !done });
-          // AI SDK text parts are formatted as 0:"chunk text\n"
-          const lines = chunk.split("\n");
-          for (const line of lines) {
-            if (line.startsWith("0:")) {
-              try {
-                const textValue = JSON.parse(line.substring(2)) as string;
-                accumulatedText += textValue;
-
-                // Update the specific message content dynamically
-                updatedMessages = updatedMessages.map((m, idx) => {
-                  if (idx === targetIndex) {
-                    const currentTextPart = m.parts.find((p) => p.type === "text");
-                    const currentText =
-                      currentTextPart && "text" in currentTextPart ? currentTextPart.text : "";
-                    return {
-                      ...m,
-                      parts: [
-                        {
-                          type: "text" as const,
-                          text: currentText + textValue,
-                        },
-                        ...m.parts.filter((p) => p.type !== "text"),
-                      ],
-                    };
-                  }
-                  return m;
-                });
-                setMessages(updatedMessages);
-              } catch {
-                // Ignore parse errors for partial/malformed lines
-              }
-            }
-          }
-        }
-      }
-
-      // Mark the tool call as resolved only after the stream finishes successfully
-      setActiveApprovals((prev) => {
-        const existing = prev[toolCallId];
-        if (!existing) return prev;
-        return {
-          ...prev,
-          [toolCallId]: {
-            ...existing,
-            state: action === "approve" ? "approved" : "declined",
-            isLoading: false,
-            error: null,
-          },
-        };
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
-      setActiveApprovals((prev) => {
-        const existing = prev[toolCallId];
-        if (!existing) return prev;
-        return {
-          ...prev,
-          [toolCallId]: {
-            ...existing,
-            isLoading: false,
-            error: message,
-          },
-        };
-      });
-    }
-  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="right"
+        side={isMobile ? "bottom" : "right"}
         showCloseButton={false}
-        className="flex h-full flex-col border-l border-border bg-background p-0 shadow-2xl w-dvw! sm:w-[500px] sm:max-w-[90vw]"
+        className={`flex flex-col border-l border-border bg-background p-0 shadow-2xl ${isMobile ? "h-[70dvh] w-full border-t" : "h-full w-dvw! sm:w-[500px] sm:max-w-[90vw]"}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border p-4">
@@ -504,9 +277,9 @@ export function AssistantSheet({ open, onOpenChange }: AssistantSheetProps) {
               <SparklesIcon className="size-4" />
             </div>
             <div>
-              <SheetTitle className="text-sm font-semibold">LabQ Assistant</SheetTitle>
+              <SheetTitle className="text-sm font-semibold">Admin Template Assistant</SheetTitle>
               <SheetDescription className="text-xs text-muted-foreground">
-                AI Partner for CRM and Inventory
+                AI partner for this internal-tools scaffold
               </SheetDescription>
             </div>
           </div>
@@ -540,8 +313,8 @@ export function AssistantSheet({ open, onOpenChange }: AssistantSheetProps) {
                   </div>
                   <h3 className="text-sm font-semibold">How can I help you today?</h3>
                   <p className="max-w-[280px] text-xs text-muted-foreground">
-                    Ask me to search CRM contacts, summarize low stock products, or schedule a
-                    note/task.
+                    Ask me about the current workspace, permissions, enabled modules, or how to
+                    adapt this scaffold for a new admin app.
                   </p>
                 </div>
               ) : null}
@@ -602,127 +375,6 @@ export function AssistantSheet({ open, onOpenChange }: AssistantSheetProps) {
                         ))
                       )}
                     </div>
-
-                    {/* Render tool invocations needing approval */}
-                    {!isUser &&
-                      message.parts?.map((part, pIdx) => {
-                        if (part.type === "tool-create-crm-activity") {
-                          const inv = part;
-                          const toolCallId = inv.toolCallId;
-                          const approval = activeApprovals[toolCallId];
-
-                          if (approval) {
-                            const args = approval.args;
-                            const isLoading = approval.isLoading ?? false;
-                            const error = approval.error;
-                            return (
-                              <div
-                                key={`${toolCallId}-${pIdx}`}
-                                className="mt-2.5 w-full rounded-2xl border border-border bg-card p-3.5"
-                              >
-                                <div className="flex items-start gap-2.5">
-                                  <div className="flex size-6 items-center justify-center rounded-full bg-muted">
-                                    <CalendarIcon className="size-3 text-foreground" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <h4 className="text-xs font-semibold">Schedule activity</h4>
-                                    <p className="mt-1 text-[11px] text-muted-foreground leading-normal">
-                                      Title: {formatToolArg(args.title)}
-                                      <br />
-                                      Type: {formatToolArg(args.type, "note")}
-                                      {args.details ? (
-                                        <>
-                                          <br />
-                                          Details: {formatToolArg(args.details)}
-                                        </>
-                                      ) : null}
-                                    </p>
-
-                                    {/* Action controls based on approval state */}
-                                    {approval.state === "pending" && !error && (
-                                      <div className="mt-3 flex gap-2">
-                                        <Button
-                                          size="xs"
-                                          className="rounded-full bg-foreground text-background"
-                                          disabled={isLoading}
-                                          onClick={() => handleResume(toolCallId, "approve")}
-                                        >
-                                          {isLoading ? (
-                                            <Loader2Icon className="size-3 animate-spin mr-1" />
-                                          ) : (
-                                            <CheckIcon className="size-3 mr-1" />
-                                          )}
-                                          Approve
-                                        </Button>
-                                        <Button
-                                          size="xs"
-                                          variant="outline"
-                                          className="rounded-full border-border bg-background"
-                                          disabled={isLoading}
-                                          onClick={() => handleResume(toolCallId, "decline")}
-                                        >
-                                          <BanIcon className="size-3 mr-1" />
-                                          Decline
-                                        </Button>
-                                      </div>
-                                    )}
-
-                                    {error && (
-                                      <div
-                                        className="mt-2.5 flex flex-col gap-1.5 text-[11px] text-destructive"
-                                        role="alert"
-                                      >
-                                        <span>{error}</span>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="xs"
-                                            variant="outline"
-                                            className="rounded-full border-border bg-background text-foreground"
-                                            onClick={() => handleResume(toolCallId, "approve")}
-                                          >
-                                            Retry
-                                          </Button>
-                                          <Button
-                                            size="xs"
-                                            variant="ghost"
-                                            className="rounded-full text-muted-foreground"
-                                            onClick={() => handleResume(toolCallId, "decline")}
-                                          >
-                                            Decline instead
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {approval.state === "approved" && !error && (
-                                      <div
-                                        className="mt-2.5 flex items-center gap-1.5 text-[11px] text-muted-foreground"
-                                        role="status"
-                                        aria-live="polite"
-                                      >
-                                        <CheckIcon className="size-3.5 text-foreground" />
-                                        <span>Activity scheduled successfully</span>
-                                      </div>
-                                    )}
-
-                                    {approval.state === "declined" && !error && (
-                                      <div
-                                        className="mt-2.5 flex items-center gap-1.5 text-[11px] text-muted-foreground"
-                                        role="status"
-                                        aria-live="polite"
-                                      >
-                                        <BanIcon className="size-3.5 text-muted-foreground" />
-                                        <span>Action declined by user</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          }
-                        }
-                        return null;
-                      })}
                   </div>
                 );
               })}

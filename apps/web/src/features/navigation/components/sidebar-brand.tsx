@@ -1,10 +1,6 @@
 import { Building2, ChevronsUpDown, Check, Plus } from "lucide-react";
-import {
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-} from "@labq-modules/ui/components/sidebar";
-import { cn } from "@labq-modules/ui/lib/utils";
+import { SidebarHeader, SidebarMenu, SidebarMenuItem } from "@admin-template/ui/components/sidebar";
+import { cn } from "@admin-template/ui/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,14 +9,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@labq-modules/ui/components/dropdown-menu";
+} from "@admin-template/ui/components/dropdown-menu";
 import { useOrganization } from "../../../hooks/use-organization";
 import { authClient } from "../../../lib/auth-client";
 
 export function SidebarBrand() {
   const { organization, isLoading: isOrgLoading } = useOrganization();
-  const { data: organizations, isLoading: isListLoading } =
-    authClient.useListOrganizations();
+  const { data: organizations, isLoading: isListLoading } = authClient.useListOrganizations();
 
   const currentOrgName = organization?.name;
   const isLoading = isOrgLoading || isListLoading;
@@ -45,9 +40,7 @@ export function SidebarBrand() {
             >
               <Building2 className="size-5 shrink-0" />
               <span className="truncate font-semibold">
-                {isLoading
-                  ? "Loading organization"
-                  : currentOrgName || "No organization"}
+                {isLoading ? "Loading organization" : currentOrgName || "No organization"}
               </span>
               <ChevronsUpDown className="ml-auto size-5 shrink-0" />
             </DropdownMenuTrigger>
@@ -63,14 +56,9 @@ export function SidebarBrand() {
                   <DropdownMenuItem disabled>Loading organizations</DropdownMenuItem>
                 ) : organizations && organizations.length > 0 ? (
                   organizations.map((org: { id: string; name: string }) => (
-                    <DropdownMenuItem
-                      key={org.id}
-                      onClick={() => handleSwitchOrg(org.id)}
-                    >
+                    <DropdownMenuItem key={org.id} onClick={() => handleSwitchOrg(org.id)}>
                       <span className="truncate">{org.name}</span>
-                      {org.id === organization?.id && (
-                        <Check className="ml-auto size-4 shrink-0" />
-                      )}
+                      {org.id === organization?.id && <Check className="ml-auto size-4 shrink-0" />}
                     </DropdownMenuItem>
                   ))
                 ) : (
@@ -78,7 +66,11 @@ export function SidebarBrand() {
                 )}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => { window.location.href = "/onboarding"; }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  window.location.href = "/onboarding";
+                }}
+              >
                 <Plus className="size-4 shrink-0" />
                 Create organization
               </DropdownMenuItem>

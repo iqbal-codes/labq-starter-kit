@@ -11,6 +11,7 @@ import {
   ArrowLeftRight,
   UserCheck,
   GitBranch,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -19,7 +20,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@labq-modules/ui/components/sidebar";
+} from "@admin-template/ui/components/sidebar";
 import type { NavItem } from "../../../types/nav";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -34,6 +35,7 @@ const iconMap: Record<string, LucideIcon> = {
   ArrowLeftRight,
   UserCheck,
   GitBranch,
+  ClipboardList,
 };
 
 interface SidebarNavProps {
@@ -51,9 +53,7 @@ export function SidebarNav({ navItems }: SidebarNavProps) {
             const iconName = item.icon ?? "Briefcase";
             const Icon = iconMap[iconName] ?? Briefcase;
             const isActive =
-              item.url === "/crm" || item.url === "/inventory"
-                ? location.pathname === item.url
-                : location.pathname.startsWith(item.url);
+              location.pathname === item.url || location.pathname.startsWith(`${item.url}/`);
             return (
               <SidebarMenuItem key={item.url}>
                 <SidebarMenuButton

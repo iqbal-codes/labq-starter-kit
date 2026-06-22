@@ -1,29 +1,30 @@
+import { FormErrors } from "@admin-template/ui/components/forms/use-form-hooks";
 import React from "react";
-import { Button } from "@labq-modules/ui/components/button";
+import { Button } from "@admin-template/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@labq-modules/ui/components/dialog";
+} from "@admin-template/ui/components/dialog";
 
-export interface CrmDialogFormApi {
+export interface EntityDialogFormApi {
   AppForm: React.ComponentType<{ children?: React.ReactNode }>;
   Form: React.ComponentType<{ children?: React.ReactNode }>;
   SubmitButton: React.ComponentType<{ children?: React.ReactNode }>;
 }
 
-interface CrmFormDialogProps {
+interface EntityFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  form: CrmDialogFormApi;
+  form: EntityDialogFormApi;
   children: React.ReactNode;
   submitLabel?: string;
 }
 
-export function CrmFormDialog(props: CrmFormDialogProps) {
+export function EntityFormDialog(props: EntityFormDialogProps) {
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent>
@@ -32,7 +33,10 @@ export function CrmFormDialog(props: CrmFormDialogProps) {
         </DialogHeader>
         <props.form.AppForm>
           <props.form.Form>
-            <div className="space-y-4">{props.children}</div>
+            <div className="space-y-4">
+              <FormErrors />
+              {props.children}
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => props.onOpenChange(false)}>
                 Cancel
