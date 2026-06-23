@@ -24,22 +24,44 @@ const {
     <title>{title}</title>
     <script is:inline>
       (() => {
-        let storedTheme = null;
+        const getResolvedTheme = () => {
+          let storedTheme = null;
+          try {
+            storedTheme = window.localStorage.getItem("theme");
+          } catch {}
+          if (storedTheme === "dark" || storedTheme === "light") {
+            return storedTheme;
+          }
+          return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        };
+
+        const applyTheme = () => {
+          const theme = getResolvedTheme();
+          document.documentElement.classList.toggle("dark", theme === "dark");
+          document.documentElement.style.colorScheme = theme;
+        };
+
+        applyTheme();
+
+        // Listen for system theme changes
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        const handleChange = () => {
+          let storedTheme = null;
+          try {
+            storedTheme = window.localStorage.getItem("theme");
+          } catch {}
+          if (storedTheme !== "dark" && storedTheme !== "light") {
+            applyTheme();
+          }
+        };
+
         try {
-          storedTheme = window.localStorage.getItem("theme");
+          mediaQuery.addEventListener("change", handleChange);
         } catch {
-          storedTheme = null;
+          try {
+            mediaQuery.addListener(handleChange);
+          } catch {}
         }
-
-        const resolvedTheme =
-          storedTheme === "dark" || storedTheme === "light"
-            ? storedTheme
-            : window.matchMedia("(prefers-color-scheme: dark)").matches
-              ? "dark"
-              : "light";
-
-        document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
-        document.documentElement.style.colorScheme = resolvedTheme;
       })();
     </script>
   </head>

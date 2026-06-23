@@ -1,18 +1,28 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useRef, useSyncExternalStore, useState, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "../ui/button";
 
 export function ThemeToggler() {
   const [mounted, setMounted] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setMounted(true);
-    setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
+
+  const isDark = useSyncExternalStore(
+    (onStoreChange) => {
+      const observer = new MutationObserver(onStoreChange);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+      return () => observer.disconnect();
+    },
+    () =>
+      typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : false,
+    () => false, // server snapshot
+  );
 
   const toggleTheme = () => {
     const button = buttonRef.current;
@@ -35,7 +45,6 @@ export function ThemeToggler() {
       document.documentElement.classList.toggle("dark", nextTheme === "dark");
       document.documentElement.style.colorScheme = nextTheme;
       localStorage.setItem("theme", nextTheme);
-      setIsDark(nextTheme === "dark");
     };
 
     if (typeof document.startViewTransition !== "function") {
@@ -60,7 +69,7 @@ export function ThemeToggler() {
     };
 
     const transition = document.startViewTransition(() => {
-      applyTheme();
+      flushSync(applyTheme);
     });
 
     if (transition?.finished) {
