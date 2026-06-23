@@ -1,5 +1,6 @@
 import { resend, FROM_EMAIL } from "./client";
 import { VerificationEmail } from "./templates/verification";
+import { ContactInquiryEmail } from "./templates/contact-inquiry";
 
 interface SendEmailOptions {
   to: string;
@@ -38,5 +39,23 @@ export async function sendVerificationEmail(email: string, name: string, url: st
   });
 }
 
+interface ContactInquiryEmailData {
+  org: string;
+  name: string;
+  email: string;
+  company?: string;
+  service?: string;
+  message: string;
+}
+
+export async function sendContactInquiryEmail(data: ContactInquiryEmailData, to: string) {
+  return sendEmail({
+    to,
+    subject: `[LabQ Inquiry] ${data.org} — ${data.name}`,
+    react: ContactInquiryEmail(data),
+  });
+}
+
 export { VerificationEmail } from "./templates/verification";
+export { ContactInquiryEmail } from "./templates/contact-inquiry";
 export { resend, FROM_EMAIL } from "./client";

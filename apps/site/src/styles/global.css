@@ -1,0 +1,3 @@
+@import "@admin-template/ui/globals.css";
+@source "../**/*.astro";
+@source "../**/*.tsx";

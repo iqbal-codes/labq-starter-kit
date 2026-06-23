@@ -1,0 +1,38 @@
+---
+interface Props {
+  title?: string;
+  subtitle?: string;
+}
+
+const {
+  title = "Ready to build something that compounds?",
+  subtitle = "Let's talk about how we can help your team move faster with clarity.",
+} = Astro.props;
+---
+
+<section class="py-20">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="overflow-hidden rounded-2xl bg-primary px-8 py-16 text-center sm:px-16">
+      <h2 class="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
+        {title}
+      </h2>
+      <p class="mx-auto mt-4 max-w-xl text-base text-primary-foreground/80">
+        {subtitle}
+      </p>
+      <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <a
+          href="/services"
+          class="inline-flex h-11 items-center rounded-lg bg-background px-6 text-sm font-medium text-foreground transition-colors hover:bg-background/90"
+        >
+          Explore Services
+        </a>
+        <a
+          href="/contact"
+          class="inline-flex h-11 items-center rounded-lg border border-primary-foreground/30 px-6 text-sm font-medium text-primary-foreground transition-colors hover:border-primary-foreground/60"
+        >
+          Book a Call
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

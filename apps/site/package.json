@@ -1,0 +1,30 @@
+{
+  "name": "@admin-template/site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 3200",
+    "build": "astro check && astro build",
+    "preview": "astro preview --port 3200",
+    "check-types": "astro check"
+  },
+  "dependencies": {
+    "@admin-template/ui": "workspace:*",
+    "@astrojs/node": "^10.0.0",
+    "@astrojs/react": "^6.0.0",
+    "astro": "^6.3.1",
+    "lucide-react": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@admin-template/config": "workspace:*",
+    "@astrojs/check": "^0.9.9",
+    "@tailwindcss/vite": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:"
+  }
+}

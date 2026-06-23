@@ -33,6 +33,8 @@ import {
 import { toAISdkStream } from "@mastra/ai-sdk";
 import { RequestContext } from "@mastra/core/request-context";
 import { ensureMastraSchemaSeparation, mastra } from "./mastra";
+import { z } from "zod";
+import { sendContactInquiryEmail, resend, FROM_EMAIL } from "@admin-template/email";
 
 type ChatRequestPart = {
   type: string;
@@ -247,13 +249,81 @@ app.use(logger());
 app.use(
   "/*",
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: (origin) => {
+      if (!origin) return env.CORS_ORIGIN;
+
+      const allowedOrigins = [env.CORS_ORIGIN, env.STOREFRONT_SITE_ORIGIN].filter(
+        (value): value is string => Boolean(value),
+      );
+
+      return allowedOrigins.includes(origin) ? origin : env.CORS_ORIGIN;
+    },
     credentials: true,
   }),
 );
 
 // Auth routes
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+
+// ── Public storefront contact inquiry ─────────────────────────
+const contactInquirySchema = z.object({
+  org: z.string().trim().min(1, "Organization is required").max(200),
+  name: z.string().trim().min(1, "Name is required").max(100),
+  email: z.string().trim().email("A valid email is required"),
+  company: z.string().trim().max(200).optional(),
+  service: z.string().trim().max(200).optional(),
+  message: z.string().trim().min(1, "Message is required").max(2000),
+});
+
+app.post("/api/storefront/contact", async (c) => {
+  try {
+    const rawBody = await c.req.text();
+    const body = rawBody.length === 0 ? null : JSON.parse(rawBody);
+    const parsed = contactInquirySchema.safeParse(body);
+
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]?.message ?? "Invalid input";
+      return c.json({ success: false, error: firstError }, 400);
+    }
+
+    const { org, name, email, company, service, message } = parsed.data;
+    const recipient = env.CONTACT_EMAIL ?? env.RESEND_FROM_EMAIL ?? null;
+
+    if (!resend || !recipient || !FROM_EMAIL) {
+      return c.json(
+        {
+          success: false,
+          error: recipient
+            ? "Contact form unavailable right now. Please email us directly."
+            : "Contact form unavailable right now. Please try again later.",
+          fallbackEmail: recipient,
+        },
+        503,
+      );
+    }
+
+    await sendContactInquiryEmail({ org, name, email, company, service, message }, recipient);
+
+    return c.json({
+      success: true,
+      message: "Inquiry received. We'll be in touch shortly.",
+    });
+  } catch (err) {
+    if (err instanceof SyntaxError) {
+      return c.json({ success: false, error: "Invalid JSON body" }, 400);
+    }
+
+    console.error("Contact inquiry error:", err);
+    return c.json(
+      {
+        success: false,
+        error: "Failed to send inquiry",
+        fallbackEmail: env.CONTACT_EMAIL ?? env.RESEND_FROM_EMAIL ?? null,
+      },
+      500,
+    );
+  }
+});
 
 // ── AI Chat Assistant routes ──────────────────────────────────
 app.post("/api/ai/chat", async (c) => {

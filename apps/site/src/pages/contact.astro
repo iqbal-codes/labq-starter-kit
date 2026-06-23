@@ -1,0 +1,48 @@
+---
+import StorefrontLayout from "../layouts/StorefrontLayout.astro";
+import Breadcrumb from "../components/astro/Breadcrumb.astro";
+import { ContactForm } from "../components/islands/index.ts";
+---
+
+<StorefrontLayout
+  title="Contact — LabQ"
+  description="Start a conversation about your next analytics, strategy, or engineering engagement."
+>
+  <section class="py-16">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <Breadcrumb items={[{ label: "Contact", href: "/contact" }]} />
+
+      <div class="mt-8 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+        <div>
+          <p class="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            Let's talk
+          </p>
+          <h1 class="mt-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+            Bring your next engagement into focus.
+          </h1>
+          <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+            Whether you need analytics, product design, platform engineering, or a
+            strategic reset, we'll help scope the right path forward.
+          </p>
+
+          <div class="mt-10 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-3xl border border-border bg-card p-6">
+              <p class="text-sm font-medium text-foreground">Best path</p>
+              <p class="mt-2 text-base text-muted-foreground">
+                Use the form for the fastest response and the most context.
+              </p>
+            </div>
+            <div class="rounded-3xl border border-border bg-card p-6">
+              <p class="text-sm font-medium text-foreground">Response time</p>
+              <p class="mt-2 text-base text-muted-foreground">
+                Usually within one business day.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <ContactForm client:load />
+      </div>
+    </div>
+  </section>
+</StorefrontLayout>

@@ -1,0 +1,43 @@
+---
+interface Props {
+  title?: string;
+  subtitle?: string;
+}
+
+const {
+  title = "Services built for modern teams",
+  subtitle = "We combine deep expertise with thoughtful execution to deliver outcomes that compound.",
+} = Astro.props;
+---
+
+<section class="relative overflow-hidden bg-background">
+  <div class="mx-auto max-w-7xl px-6 pb-24 pt-20 lg:px-8">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+        LabQ
+      </p>
+      <h1
+        class="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+      >
+        {title}
+      </h1>
+      <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+        {subtitle}
+      </p>
+      <div class="mt-10 flex items-center justify-center gap-4">
+        <a
+          href="/services"
+          class="inline-flex h-11 items-center rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Browse Services
+        </a>
+        <a
+          href="#featured"
+          class="inline-flex h-11 items-center rounded-lg border border-border px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        >
+          See Featured Work
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

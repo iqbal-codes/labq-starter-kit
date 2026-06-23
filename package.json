@@ -9,6 +9,7 @@
     "check-types": "vp run -r check-types",
     "dev:api": "vp run --filter ./apps/api dev",
     "dev:web": "vp dev apps/web",
+    "dev:site": "pnpm --filter @admin-template/site dev",
     "db:push": "vp run --filter ./packages/db db:push",
     "db:studio": "vp run --filter ./packages/db db:studio",
     "db:generate": "vp run --filter ./packages/db db:generate",

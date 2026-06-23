@@ -11,6 +11,7 @@
     "@admin-template/api": "workspace:*",
     "@admin-template/auth": "workspace:*",
     "@admin-template/db": "workspace:*",
+    "@admin-template/email": "workspace:*",
     "@admin-template/env": "workspace:*",
     "@aws-sdk/client-s3": "catalog:",
     "@hono/node-server": "^2.0.4",
@@ -22,7 +23,8 @@
     "@orpc/server": "catalog:",
     "ai": "^6.0.208",
     "drizzle-orm": "catalog:",
-    "hono": "catalog:"
+    "hono": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@admin-template/config": "workspace:*",

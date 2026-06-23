@@ -1,0 +1,126 @@
+---
+import StorefrontLayout from "../../layouts/StorefrontLayout.astro";
+import Breadcrumb from "../../components/astro/Breadcrumb.astro";
+import ServiceCard from "../../components/astro/ServiceCard.astro";
+import { BookingWidgetInline } from "../../components/islands/index.ts";
+import { fetchServices, fetchServiceBySlug } from "../../data";
+import { formatPrice } from "../../lib";
+
+export async function getStaticPaths() {
+  const allServices = await fetchServices();
+  return allServices.map((service) => ({
+    params: { slug: service.slug },
+    props: { slug: service.slug },
+  }));
+}
+
+const { slug } = Astro.params as { slug: string };
+const result = await fetchServiceBySlug(slug);
+if (!result) {
+  throw new Error(`Unknown service slug: ${slug}`);
+}
+const { service, related } = result;
+
+
+const contentHtml = service.content
+  .split("\n\n")
+  .map((block) => {
+    if (block.startsWith("## ")) {
+      return `<h2 class="mt-10 text-2xl font-bold tracking-tight text-foreground">${block.slice(3)}</h2>`;
+    }
+    if (block.startsWith("- **")) {
+      const items = block
+        .split("\n")
+        .map((line) => {
+          const cleaned = line.replace(/^- /, "");
+          const bolded = cleaned.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+          return `<li class="ml-4 list-disc text-base leading-relaxed text-muted-foreground">${bolded}</li>`;
+        })
+        .join("\n");
+      return `<ul class="mt-4 space-y-2">${items}</ul>`;
+    }
+    const paragraph = block.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    return `<p class="text-base leading-relaxed text-muted-foreground">${paragraph}</p>`;
+  })
+  .join("\n");
+
+---
+
+<StorefrontLayout
+  title={`${service.title} — LabQ`}
+  description={service.description}
+>
+  <article class="py-12">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <Breadcrumb
+        items={[
+          { label: "Services", href: "/services" },
+          { label: service.title, href: `/services/${service.slug}` },
+        ]}
+      />
+
+      <div class="mt-8 grid gap-12 lg:grid-cols-[1fr_340px]">
+        <div>
+          <span class="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            {service.category}
+          </span>
+          <h1 class="mt-2 text-4xl font-bold tracking-tight text-foreground">
+            {service.title}
+          </h1>
+          <p class="mt-4 text-lg leading-relaxed text-muted-foreground">
+            {service.description}
+          </p>
+
+          <div class="mt-10 overflow-hidden rounded-xl bg-muted">
+            <img
+              src={service.imageUrl}
+              alt={service.title}
+              class="h-64 w-full object-cover sm:h-80"
+            />
+          </div>
+
+          <div class="prose-custom mt-10" set:html={contentHtml} />
+        </div>
+
+        <aside class="lg:sticky lg:top-24 lg:self-start">
+          <BookingWidgetInline
+            client:load
+            slug={service.slug}
+            title={service.title}
+            price={
+              service.priceCents === null
+                ? "Contact us for pricing"
+                : `From ${formatPrice(service.priceCents)}`
+            }
+            duration={service.durationLabel}
+            priceCents={service.priceCents}
+          />
+        </aside>
+      </div>
+
+      {related.length > 0 && (
+        <section class="mt-20">
+          <h2 class="text-2xl font-bold tracking-tight text-foreground">
+            Related Services
+          </h2>
+          <div class="mt-8 grid gap-6 sm:grid-cols-2">
+            {related.map((relatedService) => (
+              <ServiceCard
+                slug={relatedService.slug}
+                title={relatedService.title}
+                description={relatedService.description}
+                category={relatedService.category}
+                imageUrl={relatedService.imageUrl}
+                price={
+                  relatedService.priceCents === null
+                    ? undefined
+                    : `From ${formatPrice(relatedService.priceCents)}`
+                }
+              />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </article>
+</StorefrontLayout>

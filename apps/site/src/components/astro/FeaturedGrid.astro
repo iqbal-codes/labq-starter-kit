@@ -1,0 +1,49 @@
+---
+import ServiceCard from "./ServiceCard.astro";
+import { fetchFeaturedServices } from "../../data";
+import { formatPrice } from "../../lib";
+
+const featuredServices = await fetchFeaturedServices();
+---
+
+{
+  featuredServices.length > 0 && (
+    <section id="featured" class="py-20">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="flex items-end justify-between">
+          <div>
+            <h2 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Featured Services
+            </h2>
+            <p class="mt-2 text-lg text-muted-foreground">
+              Our most in-demand offerings, handpicked for impact.
+            </p>
+          </div>
+          <a
+            href="/services"
+            class="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+          >
+            View all &rarr;
+          </a>
+        </div>
+
+        <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {featuredServices.map((service) => (
+            <ServiceCard
+              slug={service.slug}
+              title={service.title}
+              description={service.description}
+              category={service.category}
+              imageUrl={service.imageUrl}
+              price={
+                service.priceCents === null
+                  ? undefined
+                  : `From ${formatPrice(service.priceCents)}`
+              }
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
