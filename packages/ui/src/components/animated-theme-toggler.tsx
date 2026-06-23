@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 // eslint-disable-next-line react-doctor/no-flush-sync -- startViewTransition requires synchronous DOM update for correct snapshot
 import { flushSync } from "react-dom";
 
@@ -134,6 +135,7 @@ export const AnimatedThemeToggler = ({
     () => document.documentElement.classList.contains("dark"),
     () => false, // server snapshot
   );
+  const { setTheme } = useTheme();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const toggleTheme = useCallback(() => {
@@ -157,9 +159,10 @@ export const AnimatedThemeToggler = ({
     const maxRadius = Math.hypot(Math.max(x, viewportWidth - x), Math.max(y, viewportHeight - y));
 
     const applyTheme = () => {
-      const newTheme = !isDark;
-      document.documentElement.classList.toggle("dark");
-      localStorage.setItem("theme", newTheme ? "dark" : "light");
+      const nextTheme = isDark ? "light" : "dark";
+      document.documentElement.classList.toggle("dark", nextTheme === "dark");
+      document.documentElement.style.colorScheme = nextTheme;
+      setTheme(nextTheme);
     };
 
     if (typeof document.startViewTransition !== "function") {
@@ -216,7 +219,7 @@ export const AnimatedThemeToggler = ({
         );
       });
     }
-  }, [shape, fromCenter, duration, isDark]);
+  }, [shape, fromCenter, duration, isDark, setTheme]);
 
   return (
     <Button
