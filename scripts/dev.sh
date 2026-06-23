@@ -3,11 +3,11 @@ set -e
 
 # ─────────────────────────────────────────────────────────────
 # Development Server Startup Script
-# 1. Kill services on ports 3100, 4000
+# 1. Kill services on ports 3100, 3200, 4000
 # 2. Verify shared PostgreSQL container is running
 # 3. Create project database if needed
 # 4. Push Drizzle schema
-# 5. Launch web + API dev servers
+# 5. Launch web + storefront + API dev servers
 # ─────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -66,8 +66,8 @@ run_schema_setup() {
 echo "Starting development environment..."
 echo ""
 
-echo "Killing existing services on ports 3100, 4000..."
-for PORT in 3100 4000; do
+echo "Killing existing services on ports 3100, 3200, 4000..."
+for PORT in 3100 3200 4000; do
   lsof -ti tcp:"$PORT" | xargs kill -9 2>/dev/null || true
 done
 sleep 2
@@ -95,5 +95,5 @@ sleep 3
 echo "MinIO ready"
 echo ""
 
-echo "Starting workspace dev servers..."
-exec pnpm -r --parallel --filter '@admin-template/api-server' --filter '@admin-template/web' dev
+echo "Starting workspace dev servers (web, site, api)..."
+exec pnpm -r --parallel --filter '@admin-template/api-server' --filter '@admin-template/web' --filter '@admin-template/site' dev
