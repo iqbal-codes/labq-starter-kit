@@ -38,6 +38,7 @@ export function FileUploadField({
         </FieldLabel>
         <div onBlur={field.handleBlur}>
           <FileUploader
+            inputId={field.name}
             value={value}
             onValueChange={field.handleChange}
             maxSize={maxSize}

@@ -11,6 +11,8 @@ import { ScrollArea } from "./scroll-area";
 import { useControllableState } from "../hooks/use-controllable-state";
 import { cn, formatBytes } from "../lib/utils";
 
+export type FileUploaderVariant = "default" | "avatar" | "photos";
+
 export interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Value of the uploader.
@@ -51,7 +53,7 @@ export interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> 
    * ```ts
    * { "image/*": [] }
    * ```
-   * @example accept={["image/png", "image/jpeg"]}
+   * @example accept={['image/png', 'image/jpeg']}
    */
   accept?: DropzoneProps["accept"];
 
@@ -86,6 +88,41 @@ export interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> 
    * @example disabled
    */
   disabled?: boolean;
+
+  /**
+   * Visual treatment for the dropzone and preview list.
+   * @default "default"
+   */
+  variant?: FileUploaderVariant;
+
+  /**
+   * Override the idle-state dropzone title.
+   */
+  dropzoneTitle?: React.ReactNode;
+
+  /**
+   * Override the idle-state dropzone description.
+   */
+  dropzoneDescription?: React.ReactNode;
+
+  /**
+   * Override the drag-active dropzone title.
+   */
+  dragActiveTitle?: React.ReactNode;
+
+  /**
+   * Associates the hidden file input with an external label.
+   */
+  inputId?: string;
+  /**
+   * External image URL to display when no files are selected (avatar variant).
+   */
+  previewUrl?: string;
+
+  /**
+   * Called when the user removes the persisted preview (avatar variant).
+   */
+  onPreviewRemove?: () => void;
 }
 
 export function FileUploader(props: FileUploaderProps) {
@@ -99,7 +136,14 @@ export function FileUploader(props: FileUploaderProps) {
     maxFiles = 1,
     multiple = false,
     disabled = false,
+    variant = "default",
+    dropzoneTitle,
+    dropzoneDescription,
+    dragActiveTitle,
+    inputId,
     className,
+    previewUrl,
+    onPreviewRemove,
     ...dropzoneProps
   } = props;
 
@@ -107,6 +151,19 @@ export function FileUploader(props: FileUploaderProps) {
     prop: valueProp,
     onChange: onValueChange,
   });
+
+  const copy = React.useMemo(
+    () =>
+      getUploaderCopy({
+        variant,
+        maxFiles,
+        maxSize,
+        dropzoneTitle,
+        dropzoneDescription,
+        dragActiveTitle,
+      }),
+    [dragActiveTitle, dropzoneDescription, dropzoneTitle, maxFiles, maxSize, variant],
+  );
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -137,7 +194,7 @@ export function FileUploader(props: FileUploaderProps) {
       }
 
       if (onUpload && updatedFiles.length > 0 && updatedFiles.length <= maxFiles) {
-        const target = updatedFiles.length > 0 ? `${updatedFiles.length} files` : `file`;
+        const target = updatedFiles.length === 1 ? "file" : `${updatedFiles.length} files`;
 
         toast.promise(onUpload(updatedFiles), {
           loading: `Uploading ${target}...`,
@@ -149,7 +206,6 @@ export function FileUploader(props: FileUploaderProps) {
         });
       }
     },
-
     [files, maxFiles, multiple, onUpload, setFiles],
   );
 
@@ -180,70 +236,125 @@ export function FileUploader(props: FileUploaderProps) {
 
   return (
     <div className="relative flex flex-col gap-6 overflow-hidden">
-      <Dropzone
-        onDrop={onDrop}
-        accept={accept}
-        maxSize={maxSize}
-        maxFiles={maxFiles}
-        multiple={maxFiles > 1 || multiple}
-        disabled={isDisabled}
-      >
-        {({ getRootProps, getInputProps, isDragActive }) => (
-          <div
-            {...getRootProps()}
-            className={cn(
-              "group border-muted-foreground/25 hover:bg-muted/25 relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-2.5 text-center transition",
-              "ring-offset-background focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
-              isDragActive && "border-muted-foreground/50",
-              isDisabled && "pointer-events-none opacity-60",
-              className,
-            )}
-            {...dropzoneProps}
+      {variant === "avatar" ? (
+        files?.length ? null : (
+          <Dropzone
+            onDrop={onDrop}
+            accept={accept}
+            maxSize={maxSize}
+            maxFiles={maxFiles}
+            multiple={false}
+            disabled={isDisabled}
           >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-                <div className="rounded-full border border-dashed p-3">
-                  <Icons.upload className="text-muted-foreground size-7" aria-hidden="true" />
-                </div>
-                <p className="text-muted-foreground font-medium">Drop the files here</p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-                <div className="rounded-full border border-dashed p-3">
-                  <Icons.upload className="text-muted-foreground size-7" aria-hidden="true" />
-                </div>
-                <div className="space-y-px">
-                  <p className="text-muted-foreground font-medium">
-                    Drag {`'n'`} drop files here, or click to select files
-                  </p>
-                  <p className="text-muted-foreground/70 text-sm">
-                    You can upload
-                    {maxFiles > 1
-                      ? ` ${maxFiles === Infinity ? "multiple" : maxFiles}
-                      files (up to ${formatBytes(maxSize)} each)`
-                      : ` a file with ${formatBytes(maxSize)}`}
-                  </p>
-                </div>
+            {({ getRootProps, getInputProps, isDragActive }) => (
+              <div
+                {...getRootProps()}
+                className={cn(
+                  "group relative flex size-24 cursor-pointer items-center justify-center rounded-full transition",
+                  "ring-offset-background focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
+                  !previewUrl && "bg-muted/40 hover:bg-muted/60 border-2 border-dashed",
+                  isDragActive && "border-muted-foreground/50",
+                  isDisabled && "pointer-events-none opacity-60",
+                  className,
+                )}
+                {...dropzoneProps}
+              >
+                <input {...getInputProps({ id: inputId })} />
+                {previewUrl ? (
+                  <>
+                    <img
+                      src={previewUrl}
+                      alt="Avatar"
+                      width={96}
+                      height={96}
+                      loading="lazy"
+                      className="size-full rounded-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="secondary"
+                        className="size-8 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(previewUrl, "_blank");
+                        }}
+                      >
+                        <Icons.externalLink className="size-4" />
+                        <span className="sr-only">Preview</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="size-8 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPreviewRemove?.();
+                        }}
+                      >
+                        <Icons.trash className="size-4" />
+                        <span className="sr-only">Remove</span>
+                      </Button>
+                    </div>
+                  </>
+                ) : isDragActive ? (
+                  <Icons.upload className="text-muted-foreground size-6" aria-hidden="true" />
+                ) : (
+                  <Icons.user className="text-muted-foreground size-6" aria-hidden="true" />
+                )}
               </div>
             )}
-          </div>
-        )}
-      </Dropzone>
-      {files?.length ? (
-        <ScrollArea className="h-fit w-full px-3">
-          <div className="max-h-48 space-y-4">
-            {files.map((file) => (
-              <FileCard
-                key={file.name}
-                file={file}
-                onRemove={() => onRemove(files.indexOf(file))}
-                progress={progresses?.[file.name]}
-              />
-            ))}
-          </div>
-        </ScrollArea>
-      ) : null}
+          </Dropzone>
+        )
+      ) : (
+        <Dropzone
+          onDrop={onDrop}
+          accept={accept}
+          maxSize={maxSize}
+          maxFiles={maxFiles}
+          multiple={maxFiles > 1 || multiple}
+          disabled={isDisabled}
+        >
+          {({ getRootProps, getInputProps, isDragActive }) => (
+            <div
+              {...getRootProps()}
+              className={cn(
+                "group border-muted-foreground/25 hover:bg-muted/25 relative grid w-full cursor-pointer place-items-center border-2 border-dashed px-5 py-2.5 text-center transition",
+                "ring-offset-background focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
+                variant === "photos" && "h-60 rounded-2xl",
+                variant === "default" && "h-52 rounded-lg",
+                isDragActive && "border-muted-foreground/50",
+                isDisabled && "pointer-events-none opacity-60",
+                className,
+              )}
+              {...dropzoneProps}
+            >
+              <input {...getInputProps({ id: inputId })} />
+              {isDragActive ? (
+                <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+                  <div className="rounded-full border border-dashed p-3">
+                    <Icons.upload className="text-muted-foreground size-7" aria-hidden="true" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">{copy.dragActiveTitle}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+                  <div className="rounded-full border border-dashed p-3">
+                    <Icons.upload className="text-muted-foreground size-7" aria-hidden="true" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground font-medium">{copy.title}</p>
+                    <p className="text-muted-foreground/70 text-sm">{copy.description}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Dropzone>
+      )}
+      {files?.length ? renderPreviewList({ files, progresses, onRemove, variant }) : null}
     </div>
   );
 }
@@ -252,9 +363,106 @@ interface FileCardProps {
   file: File;
   onRemove: () => void;
   progress?: number;
+  variant: FileUploaderVariant;
 }
 
-function FileCard({ file, progress, onRemove }: FileCardProps) {
+function FileCard({ file, progress, onRemove, variant }: FileCardProps) {
+  if (variant === "avatar") {
+    const previewSrc = isFileWithPreview(file) ? file.preview : undefined;
+    return (
+      <div className="group relative size-24">
+        {previewSrc ? (
+          <img
+            src={previewSrc}
+            alt={file.name}
+            width={96}
+            height={96}
+            loading="lazy"
+            className="size-full rounded-full object-cover"
+          />
+        ) : null}
+        {progress !== undefined && progress < 100 ? (
+          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+            <Progress value={progress} className="w-16" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+            {previewSrc ? (
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                className="size-8 rounded-full"
+                onClick={() => window.open(previewSrc, "_blank")}
+              >
+                <Icons.externalLink className="size-4" />
+                <span className="sr-only">Preview</span>
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              size="icon"
+              variant="destructive"
+              className="size-8 rounded-full"
+              onClick={onRemove}
+            >
+              <Icons.trash className="size-4" />
+              <span className="sr-only">Remove</span>
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (variant === "photos") {
+    const previewSrc = isFileWithPreview(file) ? file.preview : undefined;
+    return (
+      <div className="group border-border bg-card relative overflow-hidden rounded-2xl border">
+        {previewSrc ? (
+          <img
+            src={previewSrc}
+            alt={file.name}
+            width={320}
+            height={240}
+            loading="lazy"
+            className="aspect-[4/3] w-full object-cover"
+          />
+        ) : null}
+        {progress !== undefined && progress < 100 ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <Progress value={progress} className="w-24" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+            {previewSrc ? (
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                className="size-8 rounded-full"
+                onClick={() => window.open(previewSrc, "_blank")}
+              >
+                <Icons.externalLink className="size-4" />
+                <span className="sr-only">Preview</span>
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              size="icon"
+              variant="destructive"
+              className="size-8 rounded-full"
+              onClick={onRemove}
+            >
+              <Icons.trash className="size-4" />
+              <span className="sr-only">Remove</span>
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex items-center space-x-4">
       <div className="flex flex-1 space-x-4">
@@ -291,6 +499,98 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
       </div>
     </div>
   );
+}
+
+function renderPreviewList({
+  files,
+  progresses,
+  onRemove,
+  variant,
+}: {
+  files: File[];
+  progresses?: Record<string, number>;
+  onRemove: (index: number) => void;
+  variant: FileUploaderVariant;
+}) {
+  if (variant === "avatar") {
+    return (
+      <div className="px-1">
+        <FileCard
+          key={files[0]?.name ?? "avatar"}
+          file={files[0]!}
+          onRemove={() => onRemove(0)}
+          progress={files[0] ? progresses?.[files[0].name] : undefined}
+          variant={variant}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <ScrollArea className={cn("h-fit w-full", variant === "default" ? "px-3" : "pr-2")}>
+      <div
+        className={cn(
+          variant === "photos"
+            ? "grid max-h-80 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            : "max-h-48 space-y-4",
+        )}
+      >
+        {files.map((file, index) => (
+          <FileCard
+            key={`${file.name}-${index}`}
+            file={file}
+            onRemove={() => onRemove(index)}
+            progress={progresses?.[file.name]}
+            variant={variant}
+          />
+        ))}
+      </div>
+    </ScrollArea>
+  );
+}
+
+function getUploaderCopy({
+  variant,
+  maxFiles,
+  maxSize,
+  dropzoneTitle,
+  dropzoneDescription,
+  dragActiveTitle,
+}: {
+  variant: FileUploaderVariant;
+  maxFiles: number;
+  maxSize: number;
+  dropzoneTitle?: React.ReactNode;
+  dropzoneDescription?: React.ReactNode;
+  dragActiveTitle?: React.ReactNode;
+}) {
+  if (variant === "avatar") {
+    return {
+      title: dropzoneTitle ?? `Drag 'n' drop a profile photo here, or click to select one`,
+      description: dropzoneDescription ?? `Upload one image up to ${formatBytes(maxSize)}`,
+      dragActiveTitle: dragActiveTitle ?? "Drop the photo here",
+    };
+  }
+
+  if (variant === "photos") {
+    return {
+      title: dropzoneTitle ?? `Drag 'n' drop photos here, or click to select images`,
+      description:
+        dropzoneDescription ??
+        `Upload up to ${maxFiles === Infinity ? "multiple" : maxFiles} photos (${formatBytes(maxSize)} each)`,
+      dragActiveTitle: dragActiveTitle ?? "Drop the photos here",
+    };
+  }
+
+  return {
+    title: dropzoneTitle ?? `Drag 'n' drop files here, or click to select files`,
+    description:
+      dropzoneDescription ??
+      (maxFiles > 1
+        ? `You can upload ${maxFiles === Infinity ? "multiple" : maxFiles} files (up to ${formatBytes(maxSize)} each)`
+        : `You can upload a file with ${formatBytes(maxSize)}`),
+    dragActiveTitle: dragActiveTitle ?? "Drop the files here",
+  };
 }
 
 function isFileWithPreview(file: File): file is File & { preview: string } {

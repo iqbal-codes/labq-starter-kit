@@ -1,16 +1,22 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { getApiError } from "@admin-template/api-client";
 import { Button } from "@admin-template/ui/components/button";
 import { useFormFields } from "@admin-template/ui/components/forms/use-form-hooks";
 import { PageHeader } from "@admin-template/ui/components/page-header";
 import { DataTable } from "@admin-template/ui/components/table/data-table";
 import { DataTableSkeleton } from "@admin-template/ui/components/table/data-table-skeleton";
 import { DataTableToolbar } from "@admin-template/ui/components/table/data-table-toolbar";
-import { customerListQueryOptions } from "./api/queries";
+import { toast } from "sonner";
+import { optionalEmailSchema, optionalPhoneSchema } from "@admin-template/schemas";
+import { customerAvatarQueryOptions, customerListQueryOptions } from "./api/queries";
 import {
   createCustomerMutation,
-  updateCustomerMutation,
+  deleteCustomerAvatarMutation,
   softDeleteCustomerMutation,
+  updateCustomerMutation,
 } from "./api/mutations";
+import { uploadCustomerAvatar } from "../operations/shared/media-client";
 import { operationsKeys } from "../operations/api/queries";
 import { badgeColumn } from "../shared/columns";
 import { EntityFormDialog } from "../shared/form-dialog";
@@ -48,6 +54,7 @@ function toCustomerMutationInput(value: CustomerFormValues) {
 function toCustomerFormValues(row: CustomerRow): CustomerFormValues {
   return {
     name: row.name,
+    avatar: [],
     email: row.email ?? "",
     phone: row.phone ?? "",
     status: row.status,
@@ -60,13 +67,63 @@ function CustomerFormDialog(props: {
   onOpenChange: (open: boolean) => void;
   title: string;
   form: EntityDialogFormApi;
+  customerId?: string;
 }) {
-  const { FormTextField, FormSelectField, FormTextareaField } = useFormFields<CustomerFormValues>();
+  const queryClient = useQueryClient();
+  const { FormAvatarUploadField, FormTextField, FormSelectField, FormTextareaField } =
+    useFormFields<CustomerFormValues>();
+
+  const { data: avatar } = useQuery({
+    ...customerAvatarQueryOptions(props.customerId ?? ""),
+    enabled: !!props.customerId && props.open,
+  });
+
+  const deleteAvatar = useMutation({
+    ...deleteCustomerAvatarMutation(),
+    onSuccess: async () => {
+      if (props.customerId) {
+        await queryClient.invalidateQueries({
+          queryKey: customerAvatarQueryOptions(props.customerId).queryKey,
+        });
+      }
+      toast.success("Avatar removed");
+    },
+    onError: (error) => {
+      toast.error(getApiError(error).message);
+    },
+  });
+
   return (
-    <EntityFormDialog {...props}>
+    <EntityFormDialog
+      open={props.open}
+      onOpenChange={props.onOpenChange}
+      title={props.title}
+      form={props.form}
+    >
       <FormTextField name="name" label="Name" required />
-      <FormTextField name="email" label="Email" type="email" />
-      <FormTextField name="phone" label="Phone" type="tel" />
+      <FormAvatarUploadField
+        name="avatar"
+        label="Avatar"
+        description="Upload a profile photo. Saving replaces the current avatar."
+        previewUrl={avatar?.downloadUrl}
+        onPreviewRemove={() => {
+          if (avatar && props.customerId) {
+            deleteAvatar.mutate({ customerId: props.customerId, attachmentId: avatar.id });
+          }
+        }}
+      />
+      <FormTextField
+        name="email"
+        label="Email"
+        type="email"
+        validators={{ onBlur: optionalEmailSchema }}
+      />
+      <FormTextField
+        name="phone"
+        label="Phone"
+        type="tel"
+        validators={{ onBlur: optionalPhoneSchema }}
+      />
       <FormSelectField name="status" label="Status" options={CUSTOMER_STATUS_OPTIONS} />
       <FormTextareaField name="notes" label="Notes" />
     </EntityFormDialog>
@@ -87,6 +144,11 @@ export function CustomersPage() {
     createMutation: createCustomerMutation,
     updateMutation: updateCustomerMutation,
     softDeleteMutation: softDeleteCustomerMutation,
+    afterSave: async ({ id, values }) => {
+      const avatar = values.avatar?.[0];
+      if (!avatar) return;
+      await uploadCustomerAvatar(id, avatar);
+    },
     summaryQueryKey: operationsKeys.summary(),
     permissions: {
       view: "operations.view",
@@ -125,6 +187,7 @@ export function CustomersPage() {
         onOpenChange={entity.handleDialogOpenChange}
         title={entity.editing ? "Edit customer" : "New customer"}
         form={entity.form}
+        customerId={entity.editing?.id}
       />
     </div>
   );

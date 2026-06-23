@@ -19,3 +19,12 @@ type ServiceListInput = {
 export function serviceListQueryOptions(input: ServiceListInput) {
   return orpc.operations.services.list.queryOptions({ input });
 }
+
+export const servicePhotosKeys = {
+  all: [...serviceKeys.all, "photos"] as const,
+  detail: (serviceId: string) => [...servicePhotosKeys.all, serviceId] as const,
+};
+
+export function servicePhotosQueryOptions(serviceId: string) {
+  return orpc.operations.services.photos.list.queryOptions({ input: { serviceId } });
+}

@@ -27,7 +27,7 @@ interface EntityFormDialogProps {
 export function EntityFormDialog(props: EntityFormDialogProps) {
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{props.title}</DialogTitle>
         </DialogHeader>

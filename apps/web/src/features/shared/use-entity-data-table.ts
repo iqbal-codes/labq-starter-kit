@@ -45,6 +45,11 @@ export interface EntityDataTableConfig<
   createMutation: () => unknown;
   updateMutation: () => unknown;
   softDeleteMutation: () => unknown;
+  afterSave?: (params: {
+    id: string;
+    mode: "create" | "update";
+    values: TFormValues;
+  }) => Promise<void>;
   summaryQueryKey?: QueryKey;
   permissions: {
     view: PermissionKey;
@@ -81,6 +86,15 @@ export function useEntityDataTable<
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<TRow | null>(null);
+
+  // Capture the initial empty defaults once so TanStack Form does not
+  // re-apply a fresh empty object after an edit flow calls form.reset(rowValues).
+  const emptyDefaultsRef = React.useRef(config.emptyFormValues);
+  const emptyDefaults = emptyDefaultsRef.current;
+  const formDefaultValues = React.useMemo(
+    () => (editing ? config.toFormValues(editing) : emptyDefaults),
+    [config.toFormValues, editing, emptyDefaults],
+  );
   const sortIds = React.useMemo(() => getSortableColumnIds(config.columns), [config.columns]);
   const [{ page, perPage, search, sort }] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -122,15 +136,6 @@ export function useEntityDataTable<
       Record<string, unknown>,
       unknown
     >),
-    onSuccess: async () => {
-      await invalidate();
-      toast.success(config.messages.createSuccess);
-      handleDialogOpenChange(false);
-    },
-    onError: (error) => {
-      const { message } = getApiError(error);
-      toast.error(message);
-    },
   });
 
   const updateMutation = useMutation({
@@ -140,15 +145,6 @@ export function useEntityDataTable<
       Record<string, unknown>,
       unknown
     >),
-    onSuccess: async () => {
-      await invalidate();
-      toast.success(config.messages.updateSuccess);
-      handleDialogOpenChange(false);
-    },
-    onError: (error) => {
-      const { message } = getApiError(error);
-      toast.error(message);
-    },
   });
 
   const deleteMutation = useMutation({
@@ -186,13 +182,38 @@ export function useEntityDataTable<
     const payload = config.toMutationInput(value);
     try {
       if (editing) {
-        await updateMutation.mutateAsync({ id: config.getRowId(editing), ...payload });
+        const id = config.getRowId(editing);
+        await updateMutation.mutateAsync({ id, ...payload });
+        try {
+          await config.afterSave?.({ id, mode: "update", values: value });
+        } catch (error) {
+          toast.error(`Record saved, but media upload failed: ${getApiError(error).message}`);
+        }
+        await invalidate();
+        toast.success(config.messages.updateSuccess);
+        handleDialogOpenChange(false);
         return;
       }
-      await createMutation.mutateAsync(payload);
+
+      const created = (await createMutation.mutateAsync(payload)) as { id?: string } | undefined;
+      const id = created?.id;
+      if (!id) {
+        throw new Error("Create mutation did not return an id");
+      }
+
+      try {
+        await config.afterSave?.({ id, mode: "create", values: value });
+      } catch (error) {
+        toast.error(`Record saved, but media upload failed: ${getApiError(error).message}`);
+      }
+
+      await invalidate();
+      toast.success(config.messages.createSuccess);
+      handleDialogOpenChange(false);
     } catch (error) {
       const { message } = getApiError(error);
       formApi.setErrorMap({ onSubmit: { form: message, fields: {} } });
+      toast.error(message);
     }
   }
 
@@ -200,12 +221,12 @@ export function useEntityDataTable<
     setDialogOpen(open);
     if (!open) {
       setEditing(null);
-      form.reset(config.emptyFormValues);
+      form.reset(emptyDefaults);
     }
   }
 
   const form = useAppForm({
-    defaultValues: config.emptyFormValues,
+    defaultValues: formDefaultValues,
     validators: { onSubmit: config.formSchema as never },
     onSubmitInvalid: () => scrollToFirstError(),
     onSubmit,
@@ -220,9 +241,9 @@ export function useEntityDataTable<
 
   const openCreateDialog = React.useCallback(() => {
     setEditing(null);
-    form.reset(config.emptyFormValues);
+    form.reset(emptyDefaults);
     setDialogOpen(true);
-  }, [config.emptyFormValues, form]);
+  }, [form]);
 
   const openEditDialog = React.useCallback(
     (row: TRow) => {

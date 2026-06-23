@@ -11,3 +11,7 @@ export function updateServiceMutation() {
 export function softDeleteServiceMutation() {
   return orpc.operations.services.softDelete.mutationOptions();
 }
+
+export function deleteServicePhotoMutation() {
+  return orpc.operations.services.photos.delete.mutationOptions();
+}

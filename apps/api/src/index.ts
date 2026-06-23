@@ -1,9 +1,22 @@
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { RPCHandler } from "@orpc/server/fetch";
+import { and, eq, isNull } from "drizzle-orm";
+import { db } from "@admin-template/db";
+import { customers, services } from "@admin-template/db/schema/business";
 import { createContext } from "@admin-template/api/context";
+import {
+  OPERATIONS_ATTACHMENT_ENTITY_TYPES,
+  deleteStoredAttachment,
+  getAttachmentBytes,
+  listEntityAttachments,
+  uploadEntityAttachment,
+} from "@admin-template/api/core/operations-media";
+import { requirePermission } from "@admin-template/api/core/permissions";
 import { appRouter } from "@admin-template/api/routers/index";
+import { writeAudit } from "@admin-template/api/core/audit";
 import { auth } from "@admin-template/auth";
 import { env } from "@admin-template/env/server";
+import type { PermissionKey } from "@admin-template/types";
 import { MODULE_KEYS } from "@admin-template/types";
 import { AppError } from "@admin-template/api/core/errors";
 
@@ -56,6 +69,72 @@ function normalizeUiRole(
 
 function resolveAssistantThreadId(orgId: string, requestedThreadId?: string) {
   return requestedThreadId || `org_${orgId}_assistant_default`;
+}
+
+async function getActiveCustomer(orgId: string, customerId: string) {
+  const [customer] = await db
+    .select()
+    .from(customers)
+    .where(
+      and(
+        eq(customers.organizationId, orgId),
+        eq(customers.id, customerId),
+        isNull(customers.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!customer) {
+    throw new AppError("NOT_FOUND", "Customer not found");
+  }
+
+  return customer;
+}
+
+async function getActiveService(orgId: string, serviceId: string) {
+  const [service] = await db
+    .select()
+    .from(services)
+    .where(
+      and(
+        eq(services.organizationId, orgId),
+        eq(services.id, serviceId),
+        isNull(services.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!service) {
+    throw new AppError("NOT_FOUND", "Service not found");
+  }
+
+  return service;
+}
+
+type MultipartValue = string | File;
+
+function isFileLike(value: unknown): value is File {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "arrayBuffer" in value &&
+    typeof value.arrayBuffer === "function" &&
+    "name" in value &&
+    typeof value.name === "string"
+  );
+}
+function ensureFiles(value: MultipartValue | MultipartValue[] | undefined): File[] {
+  if (!value) {
+    throw new AppError("VALIDATION_ERROR", "At least one file is required");
+  }
+  const entries = Array.isArray(value) ? value : [value];
+  const files = entries.filter((entry): entry is File => isFileLike(entry));
+
+  if (files.length === 0) {
+    throw new AppError("VALIDATION_ERROR", "At least one file is required");
+  }
+
+  return files;
 }
 
 function extractPromptFromMessage(message: ChatRequestMessage | undefined) {
@@ -387,6 +466,185 @@ app.post("/api/ai/chat/decline", async (c) => {
     throw new AppError(
       "INTERNAL_ERROR",
       err instanceof Error ? err.message : "Failed to decline tool call",
+    );
+  }
+});
+
+app.post("/api/operations/customers/:customerId/avatar", async (c) => {
+  try {
+    const context = await createContext({ context: c });
+    if (!context.session?.user) {
+      throw new AppError("UNAUTHORIZED", "Authentication required");
+    }
+    if (!context.activeOrganization) {
+      throw new AppError("ORGANIZATION_REQUIRED", "Active organization is required");
+    }
+
+    requirePermission(context, "operations.update" as PermissionKey);
+
+    const orgId = context.activeOrganization.id;
+    const customerId = c.req.param("customerId");
+    const userId = context.session.user.id;
+    await getActiveCustomer(orgId, customerId);
+
+    const parsed = (await c.req.parseBody({ all: true })) as Record<
+      string,
+      MultipartValue | MultipartValue[]
+    >;
+    const files = ensureFiles(parsed.avatar ?? parsed.file ?? parsed.files);
+    const file = files[0];
+    if (!file) {
+      throw new AppError("VALIDATION_ERROR", "A single avatar file is required");
+    }
+    const existing = await listEntityAttachments(
+      orgId,
+      OPERATIONS_ATTACHMENT_ENTITY_TYPES.customerAvatar,
+      customerId,
+    );
+
+    for (const attachment of existing) {
+      await deleteStoredAttachment({
+        organizationId: orgId,
+        attachmentId: attachment.id,
+        userId,
+        entityType: OPERATIONS_ATTACHMENT_ENTITY_TYPES.customerAvatar,
+        entityId: customerId,
+      });
+    }
+
+    const attachment = await uploadEntityAttachment({
+      organizationId: orgId,
+      entityType: OPERATIONS_ATTACHMENT_ENTITY_TYPES.customerAvatar,
+      entityId: customerId,
+      userId,
+      file,
+    });
+
+    await writeAudit({
+      organizationId: orgId,
+      userId,
+      moduleKey: "operations",
+      entityType: "customer",
+      entityId: customerId,
+      action: "uploadAvatar",
+      metadata: { attachmentId: attachment.id, fileName: attachment.fileName },
+    });
+
+    return c.json({
+      id: attachment.id,
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType,
+      sizeBytes: attachment.sizeBytes,
+      downloadUrl: `/api/operations/attachments/${attachment.id}`,
+    });
+  } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      "INTERNAL_ERROR",
+      err instanceof Error ? err.message : "Failed to upload customer avatar",
+    );
+  }
+});
+
+app.post("/api/operations/services/:serviceId/photos", async (c) => {
+  try {
+    const context = await createContext({ context: c });
+    if (!context.session?.user) {
+      throw new AppError("UNAUTHORIZED", "Authentication required");
+    }
+    if (!context.activeOrganization) {
+      throw new AppError("ORGANIZATION_REQUIRED", "Active organization is required");
+    }
+
+    requirePermission(context, "operations.update" as PermissionKey);
+
+    const orgId = context.activeOrganization.id;
+    const serviceId = c.req.param("serviceId");
+    const userId = context.session.user.id;
+    await getActiveService(orgId, serviceId);
+
+    const parsed = (await c.req.parseBody({ all: true })) as Record<
+      string,
+      MultipartValue | MultipartValue[]
+    >;
+    const files = ensureFiles(parsed.photos ?? parsed.file ?? parsed.files);
+
+    const uploaded = [];
+    for (const file of files) {
+      const attachment = await uploadEntityAttachment({
+        organizationId: orgId,
+        entityType: OPERATIONS_ATTACHMENT_ENTITY_TYPES.servicePhoto,
+        entityId: serviceId,
+        userId,
+        file,
+      });
+      uploaded.push(attachment);
+    }
+
+    await writeAudit({
+      organizationId: orgId,
+      userId,
+      moduleKey: "operations",
+      entityType: "service",
+      entityId: serviceId,
+      action: "uploadPhotos",
+      metadata: {
+        attachmentIds: uploaded.map((attachment) => attachment.id),
+        count: uploaded.length,
+      },
+    });
+
+    return c.json(
+      uploaded.map((attachment) => ({
+        id: attachment.id,
+        fileName: attachment.fileName,
+        mimeType: attachment.mimeType,
+        sizeBytes: attachment.sizeBytes,
+        downloadUrl: `/api/operations/attachments/${attachment.id}`,
+      })),
+    );
+  } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      "INTERNAL_ERROR",
+      err instanceof Error ? err.message : "Failed to upload service photos",
+    );
+  }
+});
+
+app.get("/api/operations/attachments/:attachmentId", async (c) => {
+  try {
+    const context = await createContext({ context: c });
+    if (!context.session?.user) {
+      throw new AppError("UNAUTHORIZED", "Authentication required");
+    }
+    if (!context.activeOrganization) {
+      throw new AppError("ORGANIZATION_REQUIRED", "Active organization is required");
+    }
+
+    requirePermission(context, "operations.view" as PermissionKey);
+
+    const orgId = context.activeOrganization.id;
+    const { attachment, bytes } = await getAttachmentBytes(orgId, c.req.param("attachmentId"));
+    const isOperationsAttachment = Object.values(OPERATIONS_ATTACHMENT_ENTITY_TYPES).includes(
+      attachment.entityType as (typeof OPERATIONS_ATTACHMENT_ENTITY_TYPES)[keyof typeof OPERATIONS_ATTACHMENT_ENTITY_TYPES],
+    );
+
+    if (!isOperationsAttachment) {
+      throw new AppError("NOT_FOUND", "Attachment not found");
+    }
+
+    return c.body(bytes, 200, {
+      "Content-Type": attachment.mimeType,
+      "Content-Length": bytes.length.toString(),
+      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(attachment.fileName)}`,
+      "Cache-Control": "private, max-age=60",
+    });
+  } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      "INTERNAL_ERROR",
+      err instanceof Error ? err.message : "Failed to download attachment",
     );
   }
 });

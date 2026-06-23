@@ -14,6 +14,35 @@ export type TableQueryInput = z.infer<typeof tableQuerySchema>;
 
 const optionalString = z.string().optional();
 
+function normalizeOptionalString(value: unknown) {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+}
+
+function hasValidPhoneNumber(value: string) {
+  if (!/^\+?[0-9\s().-]+(?:\s?(?:ext\.?|x)\s?\d+)?$/i.test(value)) {
+    return false;
+  }
+
+  const mainNumber = value.replace(/\s?(?:ext\.?|x)\s?\d+$/i, "").trim();
+  const digits = mainNumber.replace(/\D/g, "");
+  return digits.length >= 7 && digits.length <= 15;
+}
+
+export const optionalEmailSchema = z.preprocess(
+  normalizeOptionalString,
+  z.email("Invalid email address").optional(),
+);
+
+export const optionalPhoneSchema = z.preprocess(
+  normalizeOptionalString,
+  z.string().refine(hasValidPhoneNumber, "Invalid phone number").optional(),
+);
+
 export const CUSTOMER_STATUSES = ["active", "inactive"] as const;
 export const SERVICE_STATUSES = ["active", "inactive"] as const;
 export const ORDER_STATUSES = [
@@ -27,8 +56,8 @@ export const ORDER_STATUSES = [
 // ── Customers ────────────────────────────────────────────────
 export const createCustomerSchema = z.object({
   name: z.string().min(1),
-  email: optionalString,
-  phone: optionalString,
+  email: optionalEmailSchema,
+  phone: optionalPhoneSchema,
   status: z.enum(CUSTOMER_STATUSES).default("active"),
   notes: optionalString,
 });
@@ -40,9 +69,10 @@ export const updateCustomerSchema = createCustomerSchema.partial().extend({
 // ── Services ─────────────────────────────────────────────────
 export const createServiceSchema = z.object({
   name: z.string().min(1),
+  category: optionalString,
   description: optionalString,
   status: z.enum(SERVICE_STATUSES).default("active"),
-  price: z.number().nonnegative().optional(),
+  price: z.number().nonnegative().nullable().optional(),
 });
 
 export const updateServiceSchema = createServiceSchema.partial().extend({

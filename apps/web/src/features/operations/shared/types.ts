@@ -10,6 +10,7 @@ export interface CustomerRow {
 export interface ServiceRow {
   id: string;
   name: string;
+  category: string | null;
   description: string | null;
   status: string;
   price: string | number | null;
@@ -41,6 +42,7 @@ export interface OptionItem {
 
 export type CustomerFormValues = {
   name: string;
+  avatar?: File[];
   email?: string;
   phone?: string;
   status: string;
@@ -49,6 +51,8 @@ export type CustomerFormValues = {
 
 export type ServiceFormValues = {
   name: string;
+  category?: string;
+  photos?: File[];
   description?: string;
   status: string;
   price?: string | number;

@@ -11,3 +11,7 @@ export function updateCustomerMutation() {
 export function softDeleteCustomerMutation() {
   return orpc.operations.customers.softDelete.mutationOptions();
 }
+
+export function deleteCustomerAvatarMutation() {
+  return orpc.operations.customers.avatar.delete.mutationOptions();
+}

@@ -19,3 +19,12 @@ type CustomerListInput = {
 export function customerListQueryOptions(input: CustomerListInput) {
   return orpc.operations.customers.list.queryOptions({ input });
 }
+
+export const customerAvatarKeys = {
+  all: [...customerKeys.all, "avatar"] as const,
+  detail: (customerId: string) => [...customerAvatarKeys.all, customerId] as const,
+};
+
+export function customerAvatarQueryOptions(customerId: string) {
+  return orpc.operations.customers.avatar.get.queryOptions({ input: { customerId } });
+}

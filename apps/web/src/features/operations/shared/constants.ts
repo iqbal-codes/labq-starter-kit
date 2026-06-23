@@ -20,6 +20,7 @@ export const ORDER_STATUS_OPTIONS: OptionItem[] = [
 
 export const EMPTY_CUSTOMER_FORM: CustomerFormValues = {
   name: "",
+  avatar: [],
   email: "",
   phone: "",
   status: "active",
@@ -28,6 +29,8 @@ export const EMPTY_CUSTOMER_FORM: CustomerFormValues = {
 
 export const EMPTY_SERVICE_FORM: ServiceFormValues = {
   name: "",
+  category: "",
+  photos: [],
   description: "",
   status: "active",
   price: "",

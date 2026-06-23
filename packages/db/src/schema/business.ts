@@ -99,6 +99,8 @@ export const services = pgTable(
     id: text("id").primaryKey(),
     organizationId: text("organization_id").notNull(),
     name: text("name").notNull(),
+    publicSlug: text("public_slug").notNull(),
+    category: text("category"),
     description: text("description"),
     status: text("status").notNull().default("active"),
     price: decimal("price", { precision: 15, scale: 2 }),
@@ -114,6 +116,7 @@ export const services = pgTable(
   (table) => [
     index("services_orgId_idx").on(table.organizationId),
     index("services_status_idx").on(table.organizationId, table.status),
+    unique("services_org_slug_key").on(table.organizationId, table.publicSlug),
   ],
 );
 

@@ -16,7 +16,14 @@ import { z } from "zod";
 import { organizationProcedure } from "../index";
 import { writeAudit } from "../core/audit";
 import { throwNotFound } from "../core/errors";
+import {
+  OPERATIONS_ATTACHMENT_ENTITY_TYPES,
+  deleteStoredAttachment,
+  listEntityAttachments,
+  toAttachmentMetadata,
+} from "../core/operations-media";
 import { requirePermission } from "../core/permissions";
+import { resolveUniqueServiceSlug } from "../core/storefront-slugs";
 
 const idInputSchema = z.object({ id: z.string().min(1) });
 const customerListInputSchema = tableQuerySchema.extend({
@@ -26,6 +33,14 @@ const customerListInputSchema = tableQuerySchema.extend({
 const serviceListInputSchema = tableQuerySchema.extend({
   status: z.string().optional(),
   sort: z.string().optional(),
+});
+const customerAvatarInputSchema = z.object({ customerId: z.string().min(1) });
+const customerAvatarDeleteInputSchema = customerAvatarInputSchema.extend({
+  attachmentId: z.string().min(1),
+});
+const servicePhotosInputSchema = z.object({ serviceId: z.string().min(1) });
+const servicePhotoDeleteInputSchema = servicePhotosInputSchema.extend({
+  attachmentId: z.string().min(1),
 });
 const orderListInputSchema = tableQuerySchema.extend({
   status: z.string().optional(),
@@ -61,6 +76,17 @@ function getServiceOrderBy(sort?: string) {
   if (sortColumn.id === "status") return [direction(services.status)];
   if (sortColumn.id === "price") return [direction(services.price)];
   return [desc(services.createdAt)];
+}
+
+function isServiceSlugConflict(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "23505" &&
+    "constraint" in error &&
+    (error as { constraint?: unknown }).constraint === "services_org_slug_key"
+  );
 }
 
 function getOrderOrderBy(sort?: string) {
@@ -280,6 +306,46 @@ export const operationsRouter = {
       });
       return { success: true };
     }),
+    avatar: {
+      get: organizationProcedure
+        .input(customerAvatarInputSchema)
+        .handler(async ({ context, input }) => {
+          requirePermission(context, "operations.view" as PermissionKey);
+          const orgId = context.activeOrganization!.id;
+          await getActiveCustomer(orgId, input.customerId);
+          const [attachment] = await listEntityAttachments(
+            orgId,
+            OPERATIONS_ATTACHMENT_ENTITY_TYPES.customerAvatar,
+            input.customerId,
+          );
+          return attachment ? toAttachmentMetadata(attachment) : null;
+        }),
+      delete: organizationProcedure
+        .input(customerAvatarDeleteInputSchema)
+        .handler(async ({ context, input }) => {
+          requirePermission(context, "operations.update" as PermissionKey);
+          const orgId = context.activeOrganization!.id;
+          const userId = context.session.user.id;
+          await getActiveCustomer(orgId, input.customerId);
+          await deleteStoredAttachment({
+            organizationId: orgId,
+            attachmentId: input.attachmentId,
+            userId,
+            entityType: OPERATIONS_ATTACHMENT_ENTITY_TYPES.customerAvatar,
+            entityId: input.customerId,
+          });
+          await writeAudit({
+            organizationId: orgId,
+            userId,
+            moduleKey: "operations",
+            entityType: "customer",
+            entityId: input.customerId,
+            action: "deleteAvatar",
+            metadata: { attachmentId: input.attachmentId },
+          });
+          return { success: true };
+        }),
+    },
   },
 
   services: {
@@ -315,22 +381,38 @@ export const operationsRouter = {
       requirePermission(context, "operations.view" as PermissionKey);
       return getActiveService(context.activeOrganization!.id, input.id);
     }),
-
     create: organizationProcedure.input(createServiceSchema).handler(async ({ context, input }) => {
       requirePermission(context, "operations.create" as PermissionKey);
       const orgId = context.activeOrganization!.id;
       const userId = context.session.user.id;
       const id = randomUUID();
-      await db.insert(services).values({
-        id,
-        organizationId: orgId,
-        name: input.name,
-        description: input.description || undefined,
-        status: input.status,
-        price: input.price?.toString(),
-        createdBy: userId,
-        updatedBy: userId,
-      });
+
+      while (true) {
+        const publicSlug = await resolveUniqueServiceSlug(orgId, input.name);
+
+        try {
+          await db.insert(services).values({
+            id,
+            organizationId: orgId,
+            name: input.name,
+            publicSlug,
+            category: input.category?.trim() ? input.category.trim() : undefined,
+            description: input.description || undefined,
+            status: input.status,
+            price: input.price === null ? undefined : input.price?.toString(),
+            createdBy: userId,
+            updatedBy: userId,
+          });
+          break;
+        } catch (error) {
+          if (isServiceSlugConflict(error)) {
+            continue;
+          }
+
+          throw error;
+        }
+      }
+
       await writeAudit({
         organizationId: orgId,
         userId,
@@ -346,14 +428,29 @@ export const operationsRouter = {
       requirePermission(context, "operations.update" as PermissionKey);
       const orgId = context.activeOrganization!.id;
       const userId = context.session.user.id;
-      await getActiveService(orgId, input.id);
+      const current = await getActiveService(orgId, input.id);
+      const nextName = input.name ?? current.name;
+      const publicSlug =
+        current.publicSlug ?? (await resolveUniqueServiceSlug(orgId, nextName, input.id));
       await db
         .update(services)
         .set({
           name: input.name,
+          publicSlug,
+          category:
+            input.category === undefined
+              ? undefined
+              : input.category.trim()
+                ? input.category.trim()
+                : null,
           description: input.description,
           status: input.status,
-          price: input.price?.toString(),
+          price:
+            input.price === undefined
+              ? undefined
+              : input.price === null
+                ? null
+                : input.price.toString(),
           updatedBy: userId,
         })
         .where(eq(services.id, input.id));
@@ -387,6 +484,46 @@ export const operationsRouter = {
       });
       return { success: true };
     }),
+    photos: {
+      list: organizationProcedure
+        .input(servicePhotosInputSchema)
+        .handler(async ({ context, input }) => {
+          requirePermission(context, "operations.view" as PermissionKey);
+          const orgId = context.activeOrganization!.id;
+          await getActiveService(orgId, input.serviceId);
+          const items = await listEntityAttachments(
+            orgId,
+            OPERATIONS_ATTACHMENT_ENTITY_TYPES.servicePhoto,
+            input.serviceId,
+          );
+          return items.map(toAttachmentMetadata);
+        }),
+      delete: organizationProcedure
+        .input(servicePhotoDeleteInputSchema)
+        .handler(async ({ context, input }) => {
+          requirePermission(context, "operations.update" as PermissionKey);
+          const orgId = context.activeOrganization!.id;
+          const userId = context.session.user.id;
+          await getActiveService(orgId, input.serviceId);
+          await deleteStoredAttachment({
+            organizationId: orgId,
+            attachmentId: input.attachmentId,
+            userId,
+            entityType: OPERATIONS_ATTACHMENT_ENTITY_TYPES.servicePhoto,
+            entityId: input.serviceId,
+          });
+          await writeAudit({
+            organizationId: orgId,
+            userId,
+            moduleKey: "operations",
+            entityType: "service",
+            entityId: input.serviceId,
+            action: "deletePhoto",
+            metadata: { attachmentId: input.attachmentId },
+          });
+          return { success: true };
+        }),
+    },
   },
 
   orders: {
