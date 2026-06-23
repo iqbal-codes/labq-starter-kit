@@ -139,6 +139,41 @@
 - Organization settings page uses stacked cards
 - Used in: `apps/web/src/features/navigation/components/sidebar-user-menu.tsx`, `apps/web/src/features/settings/organization/page.tsx`
 
+### Public Storefront Shell Pattern
+
+- Separate Astro app at `apps/site` for public-facing marketing/catalog routes
+- Shared shell uses `StorefrontLayout.astro` with sticky top nav, footer, skip link, and `main` landmark
+- Page width is `max-w-7xl mx-auto px-6 lg:px-8`; sections use larger public-site rhythm (`py-12` to `py-20`) than the admin shell
+- Public routes currently implemented: `/`, `/services`, `/services/[slug]`, `/contact`, `/checkout`
+- Used in: `apps/site/src/layouts/StorefrontLayout.astro`, `apps/site/src/pages/*.astro`
+
+### Astro Island Cart Pattern
+
+- Public storefront cart state lives in a module-level store (`useSyncExternalStore` + `localStorage`) so independent Astro islands share client state without a React provider tree
+- `CartShell` is the single hydrated header boundary; it owns the cart trigger and drawer open/close state
+- Checkout currently routes to a concierge-led `/checkout` page with a hydrated summary island rather than a fully automated commerce API flow
+- Used in: `apps/site/src/components/islands/cart-store.ts`, `cart-shell.tsx`, `cart-drawer.tsx`, `checkout-summary.tsx`
+
+### Concierge Contact / Booking Pattern
+
+- Public booking CTAs route to `/contact#contact-form` instead of pretending to complete checkout
+- Contact page is static Astro; newsletter signup honestly opens a `mailto:` handoff instead of showing fake persisted success
+- Used in: `apps/site/src/components/islands/booking-widget-inline.tsx`, `apps/site/src/components/astro/CtaBand.astro`, `apps/site/src/pages/contact.astro`, `apps/site/src/components/islands/newsletter-form.tsx`
+
+### API-Backed Storefront Catalog Pattern
+
+- `apps/site/src/lib/storefront-api.ts` is the single data-loading layer for public catalog reads
+- Storefront pages prefer live `/api/storefront/*` data when `PUBLIC_ORG_SLUG` is configured, but fall back to local sample data only on fetch failure — not on successful empty API responses
+- Successful live API detail responses no longer merge demo taxonomy/content; empty categories/features hide or collapse honestly
+- Services index groups API results by backend category data; empty live catalogs render an explicit empty state with contact CTA
+
+### Public Contact Form Pattern
+
+- Contact page stays Astro-first, but the form itself is a single React island (`ContactForm`) so client-side validation, submit state, and fallback links live in one boundary
+- Browser posts JSON to `${PUBLIC_API_BASE}/api/storefront/contact`; `PUBLIC_ORG_SLUG` is required and disables the form when missing
+- Success state replaces the form inline; server errors render an alert banner; when the API returns a fallback email, the UI shows an honest `mailto:` escape hatch instead of faking success
+- Used in: `apps/site/src/pages/contact.astro`, `apps/site/src/components/islands/contact-form.tsx`
+
 ### Assistant Sheet Pattern
 
 - Floating shell-wide trigger opens a responsive assistant `SheetContent`: full-width bottom sheet on mobile with its natural content height preserved, right-side panel on desktop, with monochrome chrome, compact header, a native scrollable transcript pane, and a bottom-docked composer

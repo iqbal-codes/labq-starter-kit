@@ -78,3 +78,14 @@
 - Removed stale `Modules` nav item from sidebar user menu
 - E2E tests updated: signup expects `/onboarding` flow, sidebar org selector verified
 - Unit test: `slugifyOrganizationName` with 3 cases
+
+## Phase 12: Public Storefront ✅
+
+- Added `apps/site` as a separate Astro storefront workspace app (`@admin-template/site`)
+- Static-first public routes: `/`, `/services`, `/services/[slug]`, `/contact`, `/checkout`
+- Shared storefront shell with Astro layout/components plus React islands for cart, newsletter, booking CTA, and checkout summary
+- Storefront uses shared `@admin-template/ui` tokens/CSS and local sample catalog data under `apps/site/src/data`
+- Root convenience script added: `pnpm dev:site`
+- Public storefront now reads from real public `/api/storefront/*` endpoints with graceful fallback to sample data when the API is unavailable
+- Added stable `public_slug` + optional `category` support to services plus DB migration `0001_messy_ted_forrester`
+- Public contact form flow is now real: `apps/site` submits inquiries to `apps/api`, which delivers notification email through `packages/email`

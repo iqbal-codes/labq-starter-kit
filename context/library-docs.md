@@ -55,6 +55,20 @@
 - `vp config` runs from the root `prepare` script
 - Treat it as the repo-level task runner, not Turborepo
 
+## Astro 6.4 + `@astrojs/node` 10 + `@astrojs/react` 6
+
+- Public storefront app lives in `apps/site`
+- `astro check` requires `@astrojs/check` in the app's devDependencies
+- Config uses `output: "static"` with `@astrojs/node` standalone adapter and `@astrojs/react` integration; public pages prerender while React islands hydrate cart/newsletter/checkout UI
+- Tailwind token coverage for the storefront is local to `apps/site/src/styles/global.css`, which imports `@admin-template/ui/globals.css` and adds `@source` entries for `.astro` and `.tsx`
+- Astro islands do not share React context across boundaries; the storefront cart uses a module-level store persisted to `localStorage`
+
+## Public storefront oRPC/OpenAPI pattern
+
+- Procedures exposed through `OpenAPIHandler` must declare `.route({ method, path })`; otherwise `/api/*` requests will not match even if the router is mounted
+- The public storefront catalog uses read-only GET endpoints at `/api/storefront/services/list`, `/api/storefront/services/detail`, `/api/storefront/services/featured`, and `/api/storefront/categories`
+- Query params for GET routes should use `z.coerce.number()` where numeric parsing is needed (`limit`, `offset`)
+
 ## TanStack Form
 
 - `useAppForm({ defaultValues, validators: { onSubmit: schema }, onSubmit })`
@@ -135,6 +149,9 @@
 - S3-compatible client for MinIO locally and Cloudflare R2 in production
 - `S3Client` configured with `endpoint`, `region`, `forcePathStyle`, `credentials`
 - `PutObjectCommand`, `GetObjectCommand`, and `DeleteObjectCommand` back the attachment flows
+
+- Public storefront inquiries use `sendContactInquiryEmail(...)` with the React Email template in `packages/email/src/templates/contact-inquiry.tsx`
+- API availability for the contact form depends on `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and a recipient (`CONTACT_EMAIL` or fallback `RESEND_FROM_EMAIL`)
 - `forcePathStyle: true` is required for MinIO and still works with R2
 - Singleton client lives in `packages/api/src/core/s3.ts`
 

@@ -1,3 +1,80 @@
+## Public Contact Inquiry Flow
+
+Replaced the storefront's placeholder mailto-only contact card with a real public inquiry submission flow backed by the API and email package.
+
+Changes:
+
+- **Backend endpoint** (`apps/api/src/index.ts`): added `POST /api/storefront/contact` with trimmed validation, malformed-JSON handling, sender-readiness gating, storefront CORS support, and structured success/error/fallback responses
+- **Email delivery** (`packages/email/src/index.ts`, `packages/email/src/templates/contact-inquiry.tsx`): added `sendContactInquiryEmail(...)` and a dedicated React Email template for concierge-led public inquiries
+- **Environment wiring** (`packages/env/src/server.ts`, `.env.example`, `apps/api/package.json`): added `CONTACT_EMAIL`, `STOREFRONT_SITE_ORIGIN`, `PUBLIC_API_BASE`, and `PUBLIC_ORG_SLUG` wiring plus the `@admin-template/email` dependency for the API app
+- **Storefront form UI** (`apps/site/src/components/islands/contact-form.tsx`, `apps/site/src/pages/contact.astro`): added a real client island with validation, loading/success/error states, service-area selection, optional company field, and honest fallback mailto handling when the API provides a fallback address
+
+Verification:
+
+- `pnpm --filter @admin-template/email check-types`
+- `pnpm --filter @admin-template/api-server check-types`
+- `pnpm --filter @admin-template/site check-types`
+- `pnpm --filter @admin-template/site build`
+
+Notes:
+
+- The contact flow remains concierge-led; successful submission only notifies the internal inbox
+- The storefront form is intentionally disabled when `PUBLIC_ORG_SLUG` is unset, rather than pretending the flow is available
+
+**Last synced:** 2026-06-22
+
+## Public Storefront API Wiring
+
+Moved the Astro storefront from page-local sample arrays to a real read-only public catalog surface backed by `packages/api`, while keeping concierge-led contact/checkout flows intact.
+
+Changes:
+
+- **Public storefront router** (`packages/api/src/routers/storefront.ts`, `packages/api/src/routers/index.ts`): added OpenAPI-routed read-only endpoints for service list/detail/featured/categories under `/api/storefront/*`
+- **Stable public slugs** (`packages/api/src/core/storefront-slugs.ts`, `packages/api/src/routers/operations.ts`, `packages/db/src/schema/business.ts`): services now persist `publicSlug`, create retries on slug collisions, and update preserves the existing slug
+- **Service schema rollout** (`packages/db/src/migrations/0001_messy_ted_forrester.sql`, `packages/db/src/migrations/meta/0001_snapshot.json`): added `public_slug` and `category` columns plus the unique `(organization_id, public_slug)` constraint with backfill
+- **Storefront data layer** (`apps/site/src/lib/storefront-api.ts`): added API-backed loaders with paginated list fetching, honest empty-state handling, category derivation from live API data, and local fallback only on fetch failure
+- **Admin service metadata** (`packages/schemas/src/index.ts`, `apps/web/src/features/operations/shared/*`, `apps/web/src/features/services/page.tsx`): added optional `category` field so internal service records can drive public storefront grouping without demo taxonomy leakage
+
+Verification:
+
+- `pnpm --filter @admin-template/db check-types`
+- `pnpm --filter @admin-template/api check-types`
+- `pnpm --filter @admin-template/api-server check-types`
+- `pnpm --filter @admin-template/site check-types`
+- `pnpm --filter @admin-template/site build`
+
+Notes:
+
+- `PUBLIC_ORG_SLUG` enables live storefront catalog reads; when unset or the public API is unavailable, `apps/site` still renders from local sample data
+- Contact and checkout remain concierge-led; no public write flows were added in this slice
+
+**Last synced:** 2026-06-22
+
+## Astro Public Storefront Scaffold
+
+Added a new public-facing Astro storefront app under `apps/site`, separate from the internal admin shell, with a static-first route structure and React islands only where client state is required.
+
+Changes:
+
+- **Workspace app scaffold** (`apps/site/package.json`, `astro.config.mjs`, `tsconfig.json`, `env.d.ts`): added `@admin-template/site` with Astro 6, `@astrojs/node`, `@astrojs/react`, `@astrojs/check`, and a root `pnpm dev:site` script
+- **Shared storefront shell** (`apps/site/src/layouts/StorefrontLayout.astro`, `apps/site/src/components/astro/*`): added sticky header/footer, skip link, main landmark, homepage sections, services catalog page, service detail pages, contact page, and concierge-led checkout page
+- **Sample storefront data** (`apps/site/src/data/*`, `apps/site/src/lib/format.ts`): centralized the starter catalog, category definitions, related-service wiring, social proof content, and USD price formatting
+- **React islands** (`apps/site/src/components/islands/*`): added persisted cart store, cart drawer, booking CTA, newsletter mailto handoff, and checkout summary island
+- **Token wiring** (`apps/site/src/styles/global.css`): imported `@admin-template/ui/globals.css` and added local `@source` coverage for `.astro` and `.tsx` files
+
+Verification:
+
+- `pnpm install --no-frozen-lockfile`
+- `pnpm --filter @admin-template/site check-types`
+- `pnpm --filter @admin-template/site build`
+
+Notes:
+
+- The storefront currently uses local sample catalog data in `apps/site/src/data/*`
+- Public commerce/contact flows are concierge-led for now; no public commerce API endpoints were added in this pass
+
+**Last synced:** 2026-06-22
+
 ## Customer Contact Validation Hardening
 
 Tightened customer form validation so optional contact fields accept blanks, reject malformed input, and surface errors earlier in the dialog.
