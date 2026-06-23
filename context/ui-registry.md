@@ -144,19 +144,12 @@
 - Separate Astro app at `apps/site` for public-facing marketing/catalog routes
 - Shared shell uses `StorefrontLayout.astro` with sticky top nav, footer, skip link, and `main` landmark
 - Page width is `max-w-7xl mx-auto px-6 lg:px-8`; sections use larger public-site rhythm (`py-12` to `py-20`) than the admin shell
-- Public routes currently implemented: `/`, `/services`, `/services/[slug]`, `/contact`, `/checkout`
+- Public routes currently implemented: `/`, `/services`, `/services/[slug]`, and `/contact`
 - Used in: `apps/site/src/layouts/StorefrontLayout.astro`, `apps/site/src/pages/*.astro`
-
-### Astro Island Cart Pattern
-
-- Public storefront cart state lives in a module-level store (`useSyncExternalStore` + `localStorage`) so independent Astro islands share client state without a React provider tree
-- `CartShell` is the single hydrated header boundary; it owns the cart trigger and drawer open/close state
-- Checkout currently routes to a concierge-led `/checkout` page with a hydrated summary island rather than a fully automated commerce API flow
-- Used in: `apps/site/src/components/islands/cart-store.ts`, `cart-shell.tsx`, `cart-drawer.tsx`, `checkout-summary.tsx`
 
 ### Concierge Contact / Booking Pattern
 
-- Public booking CTAs route to `/contact#contact-form` instead of pretending to complete checkout
+- Public booking CTAs route to `/contact` instead of faking direct checkout
 - Contact page is static Astro; newsletter signup honestly opens a `mailto:` handoff instead of showing fake persisted success
 - Used in: `apps/site/src/components/islands/booking-widget-inline.tsx`, `apps/site/src/components/astro/CtaBand.astro`, `apps/site/src/pages/contact.astro`, `apps/site/src/components/islands/newsletter-form.tsx`
 
@@ -247,3 +240,27 @@
 - For Better Auth auth forms, map known `error.status` / `error.code` values to user-friendly messages; fall back to `error.message`.
 - For the shared CRUD pattern (`useEntityDataTable`), the hook's `onSubmit` catches API errors via `formApi.setErrorMap` and `EntityFormDialog` renders `<FormErrors />` inside the form context.
 - Used in: `sign-in.tsx`, `sign-up.tsx`, `onboarding/page.tsx`, `use-entity-data-table.ts` (customers, services, orders)
+
+### Storefront Customer-Facing UI Primitives Pattern
+
+- Composed customer-facing React components located under `apps/site/src/components/ui/`
+- Primitives include:
+  - **Button**: Custom link/button supporting pill-shapes, size modifications, primary/secondary/outline/ghost/link variants, and polymorphic rendering as `a` or `button` tags.
+  - **Input** & **Textarea**: Transparent border text fields with slight cloud background tinting and ring focus outlines.
+  - **Select**: Wrapped native select with flex layout and overlaid chevron SVG arrow.
+  - **Card**: Composable card component supporting elevations, padding slots, and `hoverable` active translations/shadows.
+  - **Badge**: Capsule-shaped metadata/status flags.
+  - **StarRating**: Generates decorative SVG rating star lists.
+  - **Accordion**: details/summary wrappers with dynamic caret rotators, keyboard focus support, and transition styles.
+  - **Checkbox** & **CheckboxGroup**: Custom checked checkbox boxes utilizing invisible native checkbox bindings, checked indicator states, and stack layouts.
+  - **RadioGroup** & **RadioGroupItem**: Composed custom radio circles utilizing browser native input binds, central dot displays, and stack layout containers.
+  - **Container**: Centered, standard layout width boundaries (`max-w-7xl mx-auto px-6 lg:px-8`).
+- Used in: `apps/site` storefront pages, header/footer layouts, and React contact/newsletter forms.
+
+### Storefront Theme Toggler Pattern
+
+- Client-side React island (`ThemeToggler`) in `apps/site/src/components/islands/theme-toggler.tsx` providing dark/light toggling.
+- Coordinated clip-path circular transition animations utilizing the native View Transitions API (`document.startViewTransition` with a circular clip-path calculation centering on the button node).
+- State synchronization in React is driven by `useSyncExternalStore` observing DOM mutations on `document.documentElement`'s classes via a `MutationObserver`.
+- Hydration mismatch safety uses a `mounted` state guard to render a fallback icon before hydration and bind client event handlers cleanly afterwards.
+- Used in: `apps/site/src/components/astro/Header.astro`

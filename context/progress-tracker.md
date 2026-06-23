@@ -1,3 +1,27 @@
+## Storefront UI Primitives, Theme Toggler, and Cart Removal
+
+Refactored the storefront components with a full suite of customer-facing React UI primitives, completely removed all commerce cart and checkout features, and shipped a highly optimized View Transitions-backed theme toggler with local storage and OS preference synchronization.
+
+Changes:
+
+- **Storefront UI Primitives** (`apps/site/src/components/ui/`): Created customer-facing React primitives including `Button`, `Input`, `Textarea`, `Select`, `Card`, `Badge`, `StarRating`, `Accordion`, `Checkbox`, `CheckboxGroup`, `RadioGroup`, `RadioGroupItem`, and `Container`.
+- **Refactoring** (`apps/site/src/components/astro/` & `apps/site/src/components/islands/`): Migrated all pages, layouts, and islands to use the new UI primitives.
+- **Cart & Checkout Removal**: Deleted the `/checkout` route, `checkout.astro`, and all cart-related stores, drawers, triggers, and summary components, simplifying the storefront to a direct lead-generation site.
+- **Theme Toggler Island** (`apps/site/src/components/islands/theme-toggler.tsx`): Built an optimized theme toggler React island utilizing the browser View Transitions API for clip-path circular animations and class state synchronization via `useSyncExternalStore`.
+- **Theme Sync & Persistence** (`apps/site/src/layouts/StorefrontLayout.astro`): Added an inline blocking script in `<head>` to initialize dark mode instantly, and added a listener on `(prefers-color-scheme: dark)` to sync with browser/OS theme preferences dynamically when no user override exists in `localStorage`.
+- **E2E Test Coverage** (`e2e/storefront-theme-toggle.spec.ts`): Added E2E tests for the storefront theme toggle, verifying persistence and default browser/OS preference behaviors.
+- **Vite Version Alignment**: Standardized `vite` to version `7.3.5` across the monorepo via root `package.json` overrides and `pnpm-workspace.yaml` catalog, resolving Rolldown's `moduleType` compiler error on Astro.
+- **E2E Parallel Run Fix**: Appended a random suffix to registration emails in all E2E spec files, preventing parallel worker run conflicts on database unique key checks.
+
+Verification:
+
+- `pnpm --filter @admin-template/site check-types` (Pass)
+- `pnpm --filter @admin-template/site build` (Pass)
+- `pnpm playwright test e2e/storefront-theme-toggle.spec.ts` (Pass)
+- `pnpm playwright test e2e/theme-toggle.spec.ts` (Pass)
+
+**Last synced:** 2026-06-23
+
 ## Public Contact Inquiry Flow
 
 Replaced the storefront's placeholder mailto-only contact card with a real public inquiry submission flow backed by the API and email package.

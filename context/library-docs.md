@@ -59,9 +59,9 @@
 
 - Public storefront app lives in `apps/site`
 - `astro check` requires `@astrojs/check` in the app's devDependencies
-- Config uses `output: "static"` with `@astrojs/node` standalone adapter and `@astrojs/react` integration; public pages prerender while React islands hydrate cart/newsletter/checkout UI
+- Config uses `output: "static"` with `@astrojs/node` standalone adapter and `@astrojs/react` integration; public pages prerender while React islands hydrate theme toggler, contact form, and newsletter UI
 - Tailwind token coverage for the storefront is local to `apps/site/src/styles/global.css`, which imports `@admin-template/ui/globals.css` and adds `@source` entries for `.astro` and `.tsx`
-- Astro islands do not share React context across boundaries; the storefront cart uses a module-level store persisted to `localStorage`
+- Astro islands do not share React context across boundaries; dynamic class changes or lightweight local mutations are captured directly in the DOM (e.g., using `MutationObserver` and `useSyncExternalStore` in `ThemeToggler`)
 
 ## Public storefront oRPC/OpenAPI pattern
 

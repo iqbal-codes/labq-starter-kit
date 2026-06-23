@@ -82,9 +82,10 @@
 ## Phase 12: Public Storefront ✅
 
 - Added `apps/site` as a separate Astro storefront workspace app (`@admin-template/site`)
-- Static-first public routes: `/`, `/services`, `/services/[slug]`, `/contact`, `/checkout`
-- Shared storefront shell with Astro layout/components plus React islands for cart, newsletter, booking CTA, and checkout summary
-- Storefront uses shared `@admin-template/ui` tokens/CSS and local sample catalog data under `apps/site/src/data`
+- Static-first public routes: `/`, `/services`, `/services/[slug]`, and `/contact`
+- Created customer-facing React UI primitives (`Button`, `Input`, `Textarea`, `Select`, `Card`, `Badge`, `StarRating`, `Accordion`, `Checkbox`, `CheckboxGroup`, `RadioGroup`, `RadioGroupItem`, `Container`) and refactored storefront layout/pages to use them
+- Completely removed all commerce cart and checkout features, changing the catalog to direct booking lead-generation
+- Implemented an optimized View Transitions-based `ThemeToggler` island with `localStorage` persistence and automatic browser/OS color-scheme preference synchronization
 - Root convenience script added: `pnpm dev:site`
 - Public storefront now reads from real public `/api/storefront/*` endpoints with graceful fallback to sample data when the API is unavailable
 - Added stable `public_slug` + optional `category` support to services plus DB migration `0001_messy_ted_forrester`

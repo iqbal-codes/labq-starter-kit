@@ -7,8 +7,8 @@
 ## Frontend
 
 - Shell app (`apps/web`): auth, sidebar organization selector, onboarding, settings, org-scoped routing, module guards, shared layout chrome, and the floating assistant sheet
-- Public storefront app (`apps/site`): Astro 6, static-first output with `@astrojs/node` standalone adapter available, React islands for cart/newsletter/checkout summary, and public routes at `/`, `/services`, `/services/[slug]`, `/contact`, `/checkout`
-- Storefront sample catalog/content still exists under `apps/site/src/data/*` as the graceful fallback source when the public catalog API is unavailable; contact/checkout handoff remains concierge-led
+- Public storefront app (`apps/site`): Astro 6, static-first output with `@astrojs/node` standalone adapter available, React islands for contact form, newsletter, and theme toggler, and public routes at `/`, `/services`, `/services/[slug]`, and `/contact`
+- Storefront sample catalog/content still exists under `apps/site/src/data/*` as the graceful fallback source when the public catalog API is unavailable; booking and contact handoffs remain concierge-led
 - Operations features: overview, customers, services, orders
 - Public storefront API surface now lives in `packages/api/src/routers/storefront.ts`, exposed through the existing oRPC/OpenAPI handler under `/api/storefront/*` for read-only catalog access
 - Public contact inquiries are handled by `POST /api/storefront/contact` in `apps/api/src/index.ts`; the Astro storefront posts to `PUBLIC_API_BASE` from a client island, and API CORS now admits both the shell origin and optional storefront origin
