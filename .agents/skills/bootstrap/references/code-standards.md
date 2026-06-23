@@ -2,34 +2,25 @@
 
 ## Purpose
 
-`context/code-standards.md` defines the engineering rules that should remain stable between sessions.
-
-Its job is to make coding decisions repeatable: typing rules, naming, file organization, error handling, dependency discipline, server/client boundaries, and any project-wide invariants. If an agent can write code in a way that surprises the rest of the repo, this file is not specific enough.
+`context/code-standards.md` defines the engineering rules that stay stable across sessions: typing, naming, file organization, error handling, dependency discipline, boundaries, and project-wide invariants. If an agent can write code that surprises the rest of the repo, this file is not specific enough.
 
 ## Inputs to inspect before drafting
 
-Read or inspect:
-
-- existing source files
-- lint config, formatter config, tsconfig
-- naming conventions in the repo
-- error-handling patterns
-- import patterns
+- source files, lint/formatter config, tsconfig
+- naming, import, and error-handling patterns already in the repo
 - framework-specific boundaries
 
 ## What must be factual
 
 - conventions already used consistently
 - enforced TypeScript, lint, and framework constraints
-- real folder ownership boundaries
-- real error-handling or data-fetching patterns
-- approved dependency constraints if they exist
+- real folder ownership and error-handling patterns
 
 ## What may be proposed for confirmation
 
 - stronger future rules where the repo is still inconsistent
 - dependency approval policy
-- preferred abstractions where the codebase has not stabilized yet
+- preferred abstractions where the codebase has not stabilized
 
 ## Suggested sections
 
@@ -48,41 +39,27 @@ Read or inspect:
 # Code Standards
 
 ## Language and Typing
-
-- [rule]
 - [rule]
 
 ## Naming
-
-- [rule]
 - [rule]
 
 ## Imports
-
-- [rule]
 - [rule]
 
 ## Boundaries
-
-- [rule]
 - [rule]
 
 ## Error Handling
-
-- [rule]
 - [rule]
 
 ## Dependencies
-
-- [rule]
 - [rule]
 
 ## Invariants
-
-- [must-never-break rule]
 - [must-never-break rule]
 ```
 
 ## Drafting rule
 
-Do not dump generic best practices into this file. Only write rules that should shape how code gets written in this specific project.
+Only write rules that shape how code gets written in this specific project. No generic best practices.
