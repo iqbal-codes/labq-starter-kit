@@ -1,6 +1,6 @@
 ---
 name: recover
-description: When something goes wrong during a build, diagnose what type of failure it is before deciding how to respond. Targeted fix, hard reset, or full rethink — the right response depends on the right diagnosis.
+description: When something goes wrong during a build, diagnose what type of failure it is before deciding how to respond. Targeted fix, hard reset, or full rethink — the right response depends on the right diagnosis. Use when you hit a bug, test failure, unexpected behavior, or notice a session going off the rails.
 ---
 
 Not every problem is a bug. Not every bug needs debugging.
@@ -44,6 +44,7 @@ Based on the description, determine which of three failure modes this is.
 - The error message or wrong behaviour is clear and specific
 
 **What it means:**
+
 This is a normal bug. It has a root cause that can be found and fixed precisely.
 
 **Response:** Targeted fix — go to Step 3A.
@@ -60,6 +61,7 @@ This is a normal bug. It has a root cause that can be found and fixed precisely.
 - It is no longer clear what the original problem was
 
 **What it means:**
+
 The session is polluted. More prompting will not help — it will compound the damage. The feature needs to be rebuilt in a clean context, not patched further.
 
 **Response:** Hard reset — go to Step 3B.
@@ -76,6 +78,7 @@ The session is polluted. More prompting will not help — it will compound the d
 - Fixing individual pieces will not help because the approach is incorrect
 
 **What it means:**
+
 This is not a debugging problem. The approach needs to be reconsidered before any code is written. More implementation in the wrong direction makes things harder to untangle.
 
 **Response:** Rethink — go to Step 3C.
@@ -94,25 +97,38 @@ Here is how we handle this:
 
 ---
 
-## Step 3A — Targeted Fix
+## Step 3A — Targeted Fix (with root-cause discipline)
 
 For Failure Mode 1.
 
-### Diagnose before touching code
+### 3A.1 — Reproduce consistently
 
-Ask the developer to share:
+Before suggesting any fix, reproduce the bug:
 
-- The exact error message or wrong behaviour
-- The specific file or function where it happens
-- What the code is supposed to do versus what it actually does
+- Can you trigger it with a specific command, input, or test?
+- What is the smallest reproduction?
+- Does it fail every time, or intermittently?
 
-Read the relevant code. Do not read the entire codebase — only what is directly relevant to the problem.
+If you cannot reproduce → gather more data, do not guess. Read more code, run more probes, ask the developer for the exact steps.
 
-### Find the root cause
+### 3A.2 — Read the error carefully
 
-Identify the root cause before suggesting any fix. A root cause is the actual reason the problem exists — not a symptom of it.
+Before hypothesizing fixes, read the error message in full:
 
-State the root cause clearly:
+- Do not skip past warnings
+- Read stack traces completely — line numbers, file paths, error codes
+- The error often contains the exact solution
+
+### 3A.3 — Hypothesize the root cause (not the symptom)
+
+The four-phase discipline, applied in order:
+
+1. **Read** the error/warning carefully (full stack, line numbers, exit codes)
+2. **Reproduce** consistently — confirm you can trigger it on demand
+3. **Hypothesize** the root cause, distinct from the symptom
+4. **Verify** the hypothesis before changing code
+
+State the root cause clearly, distinct from the symptom:
 
 ```
 Root cause: [specific explanation of why this is happening]
@@ -120,7 +136,9 @@ Root cause: [specific explanation of why this is happening]
 This is different from the symptom because: [explanation]
 ```
 
-### Suggest a precise fix
+If you cannot articulate a root cause that is distinct from the symptom, you do not have a root cause yet. Go back to 3A.2.
+
+### 3A.4 — Suggest a precise fix
 
 Describe the fix that addresses the root cause. Not a workaround. Not a patch on top of broken code.
 
@@ -132,19 +150,29 @@ This will resolve the root cause because: [explanation]
 
 Wait for the developer to confirm before making any changes.
 
-### If the fix does not work
+### 3A.5 — Verify the fix worked
 
-If the suggested fix does not resolve the problem — stop. Do not suggest another fix immediately.
+After applying the fix:
 
-Re-examine the root cause diagnosis. If the fix did not work, the root cause was probably wrong. Diagnose again from the beginning before trying again.
+- Run the original reproduction. Does the bug still happen?
+- Run the full test suite. Did anything else break?
+- If the fix did not work → the root cause was wrong. Go back to 3A.3 and re-diagnose.
 
-If two root cause diagnoses have both been wrong — this may actually be Failure Mode 2 or 3. Re-evaluate.
+Do not iterate the fix without re-diagnosing. If two root cause diagnoses have both been wrong → this may be Failure Mode 2 or 3. Re-evaluate.
 
 ---
 
-## Step 3B — Hard Reset
+## Step 3B — Hard Reset (with explicit context-rot awareness)
 
 For Failure Mode 2.
+
+### Context rot: a note on when to consider this mode even without explicit failures
+
+If a session is at ~50%+ context, has been running for many turns, or keeps contradicting earlier decisions — treat as Failure Mode 2 even if no explicit failures yet. The context itself is failing.
+
+Research on LLM agent context shows quality drops sharply past ~50% context fill: the model cuts corners, forgets earlier requirements, and drifts from the original architecture. You will see this as the same file getting edited multiple times, decisions being reversed, or vague regressions.
+
+If any of these signals appear, propose a hard reset before things get worse.
 
 ### Acknowledge the situation honestly
 

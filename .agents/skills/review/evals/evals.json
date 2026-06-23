@@ -1,0 +1,46 @@
+{
+  "skill_name": "review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just shipped a 'duplicate project' feature. Plan was: deep clone with new IDs, user-prompted naming, admin/owner-only permission, synchronous duplication, button on project detail page. Code is in. Can you review it?",
+      "expected_output": "Runs Full review: Layer 1 (plan alignment — checks all 5 decisions are reflected), Layer 2 (system integrity — boundaries, design system, code standards), Layer 3 (production readiness — error handling, edge cases, loading states). Reports findings with severity. Ends with Disposition asking what to do with each severity tier.",
+      "files": [],
+      "expectations": [
+        "Picks Full review mode (or equivalent) since a plan exists",
+        "Reads the plan and checks each of the 5 decisions against what was built",
+        "Covers Layer 2 system integrity (architecture boundaries, design system, patterns)",
+        "Covers Layer 3 production readiness (error handling, edge cases, loading states)",
+        "Labels findings by severity (Critical/Important/Minor)",
+        "Ends with a Disposition section that drives the next step (fix now, defer, log)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I had a bug where the login redirect was wrong. We just fixed it (turned out to be a stale session cookie path). Can you do a quick post-fix review to make sure the fix didn't break anything else?",
+      "expected_output": "Picks Lite review mode (post-recover fix, no plan needed). Skips Layer 1. Focuses on Layer 2 (does the fix respect system boundaries?) and Layer 3 (does it handle edge cases like the original symptom?). Drives Disposition.",
+      "files": [],
+      "expectations": [
+        "Picks Lite review (or equivalent — not full) since this is a post-fix check",
+        "Skips or short-circuits Layer 1 (no plan to compare against)",
+        "Checks Layer 2: does the fix introduce boundary violations or pattern drift?",
+        "Checks Layer 3: edge cases (what about other paths that might be stale?), error handling, regression risk",
+        "Drives Disposition: asks whether to fix related issues now or log them"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I dispatched 3 parallel subagents to build: (a) a new 'duplicates' table migration, (b) a POST /projects/:id/duplicate API endpoint, and (c) a 'Duplicate Project' UI button with a name modal. All 3 are done. Can you review the integrated result?",
+      "expected_output": "Picks Parallel review mode. Reviews each slice against its own contract first, then runs a cross-slice integration review (shared types between API and UI, no duplicate imports, no boundary violations, integration points wired correctly). Flags integration issues as Critical.",
+      "files": [],
+      "expectations": [
+        "Picks Parallel review mode (or equivalent)",
+        "Reviews each slice (migration, API, UI) against its own contract first",
+        "Runs cross-slice integration review after per-slice pass",
+        "Checks shared types between API and UI slices",
+        "Checks for duplicate dependencies or boundary leaks between slices",
+        "Labels integration issues as Critical even if individual slices pass"
+      ]
+    }
+  ]
+}

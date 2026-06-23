@@ -1,0 +1,45 @@
+{
+  "skill_name": "architect",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to add a 'duplicate project' feature. Users should be able to clone an existing project with all its tasks and members. Where should it live?",
+      "expected_output": "Routes the user through Step 1 (context), Step 2 (language alignment: project, task, member, duplicate), Step 3 (decisions: deep vs shallow clone, naming collision, permissions), Step 4 ('Blueprint ready'), Step 4.5 (pressure-test), Step 4.6 (self-review), Step 5 (plan), Step 5.5 (persistence check), Step 6 (execution mode menu). Does NOT skip directly to writing code or proposing architecture without alignment.",
+      "files": [],
+      "expectations": [
+        "Asks language-alignment questions before proposing implementation",
+        "Surfaces at least 3 meaningful decisions (data ownership, naming, permissions, etc.)",
+        "Eventually says 'Blueprint ready' or equivalent gate before producing the plan",
+        "Presents an implementation plan with files/steps, not just a description",
+        "After plan confirmation, presents the Step 6 execution-mode menu with 4 options",
+        "Does NOT skip Step 6 and jump straight into code without a mode choice"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Tiny typo fix: the 'Logiin' heading should be 'Login'.",
+      "expected_output": "Skips architect entirely. Notes it's a trivial fix and proceeds without a multi-step plan, language alignment, or execution mode menu.",
+      "files": [],
+      "expectations": [
+        "Does NOT run Steps 1-6 of architect",
+        "Recognizes this as a one-line fix and skips the skill",
+        "Does NOT ask language-alignment questions or propose multi-file changes",
+        "May mention to just make the change"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We need to add role-based access control across the app. 6 user roles, ~40 protected routes, complex permission inheritance. Will take weeks.",
+      "expected_output": "Recognizes the scope and triggers persistence mode (Step 5.5). Writes design + plan to docs/designs/ and docs/plans/. Surfaces many decisions. Does NOT try to cover everything inline in chat.",
+      "files": [],
+      "expectations": [
+        "Recognizes this is large enough to warrant persistence mode",
+        "Mentions writing a design doc to docs/designs/",
+        "Mentions writing a plan doc to docs/plans/",
+        "Surfaces decisions about RBAC model (role hierarchy, permission inheritance, route guard placement, etc.)",
+        "Uses delta notation or acknowledges that future updates will use ADDED/MODIFIED/REMOVED markers",
+        "Does NOT try to plan the whole thing inline in one chat response"
+      ]
+    }
+  ]
+}

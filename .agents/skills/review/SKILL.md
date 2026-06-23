@@ -1,6 +1,6 @@
 ---
 name: review
-description: After building a feature, verify it matches what was planned, respects the system architecture and design standards, and is ready for production. Reports issues clearly so the developer decides what to fix.
+description: After building a feature, verify it matches what was planned, respects the system architecture and design standards, and is ready for production. Runs three review layers (plan alignment, system integrity, production readiness) and drives disposition. Use whenever a feature is complete, before merging, or when parallel subagent work needs integration review.
 ---
 
 Building is not done when the code runs. It is done when the code is correct.
@@ -15,13 +15,28 @@ It does not fix anything. It reports what it finds and lets the developer decide
 
 ---
 
+## Step 0 — Pick the Right Mode
+
+Three modes. Pick one based on context:
+
+| Mode | When | What it covers |
+|---|---|---|
+| **Full review** | Single feature built end-to-end, ready to merge | All 3 layers + Disposition |
+| **Lite review** | Small fix, single-file change, after a `recover` fix | Layer 2 (system integrity) + Layer 3 (production readiness) — skip Layer 1 if no plan exists |
+| **Parallel review** | Multiple subagents built disjoint slices in parallel | Per-slice review first, then cross-slice integration review |
+| **Audit** | Post-merge, weeks after a feature shipped | Drift check: do listed "completed" features still exist? Has intent captured at design time been overridden? |
+
+If unsure, use Full review. The other modes exist to skip work that's not relevant.
+
+---
+
 ## Step 1 — Understand What Should Have Been Built
 
 Before reviewing anything, establish the benchmark.
 
 Read in this order:
 
-- The implementation plan from `/architect` if one exists
+- The implementation plan from `architect` if one exists
 - The feature description or task that was given
 - Any relevant context files — architecture boundaries, code standards, design rules
 
@@ -65,7 +80,22 @@ Check:
 
 ---
 
-## Step 3 — Report What You Found
+## Step 3 — Reviewing Parallel Work (if Mode = Parallel)
+
+When multiple subagents built disjoint slices in parallel:
+
+1. **Per-slice review** — review each slice against its own contract first
+2. **Cross-slice integration review** — then check that the slices compose:
+   - Shared types — do they actually match across slices?
+   - Duplicate imports — did two slices both add the same dependency?
+   - Boundary violations — does slice A's code leak into slice B's territory?
+   - Integration points — do the pieces wire up correctly?
+
+Flag integration issues as Critical even if individual slices pass their own review. A per-slice pass that finds nothing can still hide a cross-slice integration break. Always do both.
+
+---
+
+## Step 4 — Report What You Found
 
 After completing all three layers, produce a clear report. Do not bury issues. Do not soften them. Report honestly so the developer can make informed decisions.
 
@@ -93,17 +123,45 @@ After completing all three layers, produce a clear report. Do not bury issues. D
 
 ---
 
-## Step 4 — Let the Developer Decide
+## Step 5 — Disposition
 
-After presenting the report, stop. Do not start fixing. Do not suggest fixes unless the developer asks.
+After the report, do not just wait. Drive the next step. Issues have severity labels (see Severity Guide below) — handle each:
 
-Wait for the developer to:
+### Critical (block the feature)
 
-- Ask you to fix a specific issue
-- Tell you an issue is intentional and can be ignored
-- Confirm everything is resolved and ready to move on
+- Do NOT move on. Critical issues mean the feature is not done.
+- Offer to fix now, or hand off to `recover` if the underlying approach is wrong.
+- If you cannot fix in this session, log as a blocker and stop work.
 
-The developer owns the quality decision. You inform it.
+### Important (ask explicitly)
+
+- Ask: "Fix now, or open a follow-up task?"
+- Do not assume the developer remembers to track these.
+- If deferred, log into `context/progress-tracker.md`'s running issues section so it doesn't get lost.
+
+### Minor (log and proceed)
+
+- Add to a running list (or `context/progress-tracker.md` if it exists).
+- Proceed with the feature.
+- These are housekeeping, not blockers.
+
+**Never present a Critical review and then end the session without explicit resolution.**
+
+---
+
+## Step 6 — Audit Mode (if Mode = Audit)
+
+For post-merge review of shipped features:
+
+1. Read `git log` for the relevant feature commit range
+2. Read the corresponding section in `context/progress-tracker.md`
+3. Check:
+   - Are the listed "completed" features actually still in the codebase, or were they reverted?
+   - Has any documented decision been silently overridden by recent commits?
+   - Has any new pattern emerged that's not in `context/ui-registry.md` or other context docs yet?
+4. Report drift as Critical (decision overrides) or Important (new untracked patterns).
+
+This is mostly `syncdocs` territory — drift in documentation. Audit mode in review catches drift in *intent*: code that no longer matches what was originally agreed.
 
 ---
 

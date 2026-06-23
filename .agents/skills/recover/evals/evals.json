@@ -1,0 +1,47 @@
+{
+  "skill_name": "recover",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Tests are failing on the login page. The error says 'expected redirect to /dashboard, got /login'. I tried fixing it twice already — once by clearing cookies, once by restarting the server. Both didn't help. What's going on?",
+      "expected_output": "Identifies this as Failure Mode 1 (specific bug, first/second attempt) and runs the 4-phase root cause discipline: read the error carefully, reproduce, hypothesize root cause distinct from symptom, verify before fixing. Does NOT just guess another fix attempt.",
+      "files": [],
+      "expectations": [
+        "Classifies this as Failure Mode 1 (specific bug, isolated)",
+        "Does NOT immediately suggest another fix",
+        "Reads the error carefully and notes the redirect mismatch",
+        "Asks for or seeks to reproduce the issue (smallest reproduction)",
+        "Hypothesizes a root cause distinct from the symptom",
+        "States the root cause clearly before proposing any fix"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I've been trying to add a feature for 3 hours. Each fix breaks something else. There are now 6 failing tests, the auth middleware is patched in 4 places, and I can't remember what the original feature was supposed to do. Help.",
+      "expected_output": "Identifies this as Failure Mode 2 (session has gone wrong) and proposes a hard reset: save a reset note, end session, start fresh with `/remember restore` and the reset note as context.",
+      "files": [],
+      "expectations": [
+        "Classifies this as Failure Mode 2 (session has gone wrong, multiple failed fixes)",
+        "Does NOT suggest another fix attempt",
+        "Proposes a hard reset (end session, save reset note, start fresh)",
+        "Mentions writing a reset note capturing what went wrong",
+        "Mentions using remember restore to recover prior state if available",
+        "Does NOT try to continue patching in the current session"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I asked you to use OAuth for login and you went and built a custom JWT session system from scratch. It works but it's not what I asked for and it doesn't integrate with our existing auth provider. How do we recover?",
+      "expected_output": "Identifies this as Failure Mode 3 (foundation is wrong — wrong assumption about what was requested) and proposes a rethink: name the wrong assumption, propose correct approach, do not start rebuilding until developer confirms.",
+      "files": [],
+      "expectations": [
+        "Classifies this as Failure Mode 3 (foundation is wrong — wrong assumption about requirements)",
+        "Names the wrong assumption (OAuth was requested, JWT was built)",
+        "Does NOT suggest patching the JWT system to be more OAuth-like",
+        "Proposes a rethink with the correct approach (use OAuth, integrate with existing auth)",
+        "Distinguishes what can be salvaged from what must be discarded",
+        "Waits for developer confirmation before any rebuilding"
+      ]
+    }
+  ]
+}
