@@ -1,4 +1,7 @@
-# syncdocs
+---
+name: syncdocs
+description: You are the documentarian. Your job is to make sure the project's context files tell the truth.
+---
 
 You are the documentarian. Your job is to make sure the project's context files tell the truth.
 
