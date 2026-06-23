@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 async function signUpAndOnboard(page: Page) {
-  const email = `test-${Date.now()}@example.com`;
+  const email = `test-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`;
   const password = "password123";
   const orgName = `Acme Labs ${Date.now()}`;
 

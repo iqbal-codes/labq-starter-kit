@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
+  testMatch: "**/*.spec.ts",
   outputDir: "./e2e/test-results",
   timeout: 30_000,
   expect: { timeout: 5000 },
@@ -33,6 +34,11 @@ export default defineConfig({
     {
       command: "pnpm --filter @admin-template/web dev",
       port: 3100,
+      reuseExistingServer: true,
+    },
+    {
+      command: "pnpm --filter @admin-template/site dev",
+      port: 3200,
       reuseExistingServer: true,
     },
   ],

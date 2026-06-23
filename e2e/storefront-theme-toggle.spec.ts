@@ -1,49 +1,55 @@
 import { test, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
 
-async function signUpAndOnboard(page: Page) {
-  const email = `theme-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`;
-  const password = "password123";
-  const orgName = `Theme Labs ${Date.now()}`;
+test.describe("Storefront Theme toggle", () => {
+  test.use({ baseURL: "http://localhost:3200" });
 
-  await page.goto("/auth/sign-up");
-  await page.getByLabel("Name").fill("Theme User");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Create account" }).click();
-
-  await expect(page).toHaveURL("/onboarding");
-  await page.getByLabel("Organization name").fill(orgName);
-  await page.getByRole("button", { name: "Create organization" }).click();
-  await expect(page).toHaveURL("/overview", { timeout: 15000 });
-}
-
-test.describe("Theme toggle", () => {
   test("persists the selected theme after reload", async ({ page }) => {
-    await signUpAndOnboard(page);
+    page.on("console", (msg) => {
+      console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`);
+    });
+    page.on("pageerror", (err) => {
+      console.log(`[BROWSER EXCEPTION] ${err.message}`);
+    });
+
+    await page.goto("/");
 
     const html = page.locator("html");
     const toggle = page.getByRole("button", { name: "Toggle theme" });
 
+    // 1. Initially should match the default/system color scheme (light for this test)
     await expect(html).not.toHaveClass(/dark/);
+
+    // 2. Toggle the theme to dark
     await toggle.click();
     await expect(html).toHaveClass(/dark/);
     await expect.poll(() => page.evaluate(() => localStorage.getItem("theme"))).toBe("dark");
 
+    // 3. Reload page and check persistence
     await page.reload();
-    await expect(page).toHaveURL(/\/overview$/);
     await expect(html).toHaveClass(/dark/);
+
+    // 4. Toggle back to light
+    await toggle.click();
+    await expect(html).not.toHaveClass(/dark/);
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("theme"))).toBe("light");
+
+    // 5. Reload page and check persistence
+    await page.reload();
+    await expect(html).not.toHaveClass(/dark/);
   });
 
   test.describe("system theme default", () => {
-    test.use({ colorScheme: "dark" });
+    test.use({ baseURL: "http://localhost:3200", colorScheme: "dark" });
 
     test("follows the browser preference when no saved theme exists", async ({ page }) => {
-      await signUpAndOnboard(page);
+      await page.goto("/");
 
       const html = page.locator("html");
 
+      // Verify no stored override is present
       await expect.poll(() => page.evaluate(() => localStorage.getItem("theme"))).toBe(null);
+
+      // Verify page is dark because system preference is dark
       await expect(html).toHaveClass(/dark/);
       await expect
         .poll(() =>

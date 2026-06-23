@@ -15,7 +15,9 @@ function pngUpload(name: string) {
 async function signUpAndOnboard(page: Page) {
   await page.goto("/auth/sign-up");
   await page.getByLabel("Name").fill("Operations User");
-  await page.getByLabel("Email").fill(`operations-${Date.now()}@example.com`);
+  await page
+    .getByLabel("Email")
+    .fill(`operations-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`);
   await page.getByLabel("Password").fill("password123");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page).toHaveURL("/onboarding");
