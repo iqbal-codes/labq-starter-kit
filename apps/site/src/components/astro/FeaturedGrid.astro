@@ -2,6 +2,7 @@
 import ServiceCard from "./ServiceCard.astro";
 import { fetchFeaturedServices } from "../../data";
 import { formatPrice } from "../../lib";
+import { Container } from "../ui";
 
 const featuredServices = await fetchFeaturedServices();
 ---
@@ -9,7 +10,7 @@ const featuredServices = await fetchFeaturedServices();
 {
   featuredServices.length > 0 && (
     <section id="featured" class="py-20">
-      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <Container>
         <div class="flex items-end justify-between">
           <div>
             <h2 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -43,7 +44,7 @@ const featuredServices = await fetchFeaturedServices();
             />
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   )
 }

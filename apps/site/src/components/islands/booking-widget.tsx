@@ -1,34 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import { Calendar, Clock } from "lucide-react";
 import { formatPrice } from "../../lib/format";
-import { cartStore } from "./cart-store";
 import type { Service } from "../../data/services";
+import { Card, Button } from "../ui";
 
 interface BookingWidgetProps {
   service: Service;
 }
 
 export function BookingWidget({ service }: BookingWidgetProps) {
-  const [added, setAdded] = useState(false);
-
-  const handleAdd = () => {
-    if (service.priceCents === null) return;
-
-    cartStore.addItem({
-      slug: service.slug,
-      title: service.title,
-      priceCents: service.priceCents,
-      imageUrl: service.imageUrl,
-    });
-    setAdded(true);
-  };
+  const bookingHref = "/contact#contact-form";
 
   return (
-    <div className="sticky top-24 rounded-3xl border bg-card p-6 shadow-md ring-1 ring-foreground/5">
+    <Card className="sticky top-24 p-6">
       <div className="mb-4">
-        <p className="text-2xl font-semibold text-foreground">
+        <p className="text-2xl font-bold text-foreground">
           {service.priceCents === null ? "Contact us for pricing" : formatPrice(service.priceCents)}
         </p>
       </div>
@@ -44,35 +31,9 @@ export function BookingWidget({ service }: BookingWidgetProps) {
         </div>
       </div>
 
-      {service.priceCents === null ? (
-        <a
-          href="/contact#contact-form"
-          className="inline-flex w-full items-center justify-center rounded-4xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
-        >
-          Book Now
-        </a>
-      ) : added ? (
-        <div className="rounded-2xl bg-muted/50 px-4 py-3 text-center text-sm font-medium text-foreground">
-          Added to cart!
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={handleAdd}
-            className="w-full rounded-4xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
-          >
-            Book Now
-          </button>
-          <button
-            type="button"
-            onClick={handleAdd}
-            className="w-full rounded-4xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-          >
-            Add to Cart
-          </button>
-        </div>
-      )}
-    </div>
+      <Button href={bookingHref} variant="primary" className="w-full">
+        Book Appointment
+      </Button>
+    </Card>
   );
 }

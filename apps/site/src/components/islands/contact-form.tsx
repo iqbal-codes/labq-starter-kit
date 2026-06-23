@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Button, Input, Textarea, Select, Card } from "../ui";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
@@ -139,7 +140,7 @@ export function ContactForm() {
 
   if (submitState === "success") {
     return (
-      <div id="contact-form" className="rounded-3xl border border-border bg-card p-8 shadow-sm">
+      <Card id="contact-form" className="p-8">
         <div className="flex flex-col items-center text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
             <svg
@@ -158,12 +159,12 @@ export function ContactForm() {
             We&apos;ve received your inquiry and will be in touch within one business day.
           </p>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div id="contact-form" className="rounded-3xl border border-border bg-card p-8 shadow-sm">
+    <Card id="contact-form" className="p-8">
       <h2 className="text-xl font-semibold text-foreground">Start with a quick note</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         Tell us what you&apos;re working on, your timeline, and the kind of outcome you need.
@@ -190,7 +191,7 @@ export function ContactForm() {
           <label htmlFor="contact-name" className="mb-1 block text-sm font-medium text-foreground">
             Full name <span className="text-destructive">*</span>
           </label>
-          <input
+          <Input
             id="contact-name"
             type="text"
             required
@@ -201,9 +202,7 @@ export function ContactForm() {
             aria-invalid={touched.name && !!errors.name}
             aria-describedby={errors.name ? "error-name" : undefined}
             disabled={submitState === "submitting" || formUnavailable}
-            className={`h-11 w-full rounded-3xl border bg-input/50 px-4 text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 ${
-              touched.name && errors.name ? "border-destructive" : "border-border"
-            }`}
+            error={touched.name && !!errors.name}
           />
           {touched.name && errors.name && (
             <p id="error-name" className="mt-1 text-xs text-destructive" role="alert">
@@ -216,7 +215,7 @@ export function ContactForm() {
           <label htmlFor="contact-email" className="mb-1 block text-sm font-medium text-foreground">
             Work email <span className="text-destructive">*</span>
           </label>
-          <input
+          <Input
             id="contact-email"
             type="email"
             required
@@ -227,9 +226,7 @@ export function ContactForm() {
             aria-invalid={touched.email && !!errors.email}
             aria-describedby={errors.email ? "error-email" : undefined}
             disabled={submitState === "submitting" || formUnavailable}
-            className={`h-11 w-full rounded-3xl border bg-input/50 px-4 text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 ${
-              touched.email && errors.email ? "border-destructive" : "border-border"
-            }`}
+            error={touched.email && !!errors.email}
           />
           {touched.email && errors.email && (
             <p id="error-email" className="mt-1 text-xs text-destructive" role="alert">
@@ -245,7 +242,7 @@ export function ContactForm() {
           >
             Company
           </label>
-          <input
+          <Input
             id="contact-company"
             type="text"
             value={company}
@@ -255,9 +252,7 @@ export function ContactForm() {
             aria-invalid={touched.company && !!errors.company}
             aria-describedby={errors.company ? "error-company" : undefined}
             disabled={submitState === "submitting" || formUnavailable}
-            className={`h-11 w-full rounded-3xl border bg-input/50 px-4 text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 ${
-              touched.company && errors.company ? "border-destructive" : "border-border"
-            }`}
+            error={touched.company && !!errors.company}
           />
           {touched.company && errors.company && (
             <p id="error-company" className="mt-1 text-xs text-destructive" role="alert">
@@ -273,7 +268,7 @@ export function ContactForm() {
           >
             Service area
           </label>
-          <select
+          <Select
             id="contact-service"
             value={service}
             onChange={(event) => setService(event.target.value)}
@@ -281,9 +276,7 @@ export function ContactForm() {
             aria-invalid={touched.service && !!errors.service}
             aria-describedby={errors.service ? "error-service" : undefined}
             disabled={submitState === "submitting" || formUnavailable}
-            className={`h-11 w-full appearance-none rounded-3xl border bg-input/50 px-4 text-sm text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 ${
-              touched.service && errors.service ? "border-destructive" : "border-border"
-            } ${!service ? "text-muted-foreground" : ""}`}
+            error={touched.service && !!errors.service}
           >
             <option value="">Select a service area (optional)</option>
             {SERVICE_OPTIONS.map((option) => (
@@ -291,7 +284,7 @@ export function ContactForm() {
                 {option}
               </option>
             ))}
-          </select>
+          </Select>
           {touched.service && errors.service && (
             <p id="error-service" className="mt-1 text-xs text-destructive" role="alert">
               {errors.service}
@@ -306,10 +299,9 @@ export function ContactForm() {
           >
             What are you working on? <span className="text-destructive">*</span>
           </label>
-          <textarea
+          <Textarea
             id="contact-message"
             required
-            rows={5}
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             onBlur={() => blur("message")}
@@ -317,9 +309,7 @@ export function ContactForm() {
             aria-invalid={touched.message && !!errors.message}
             aria-describedby={errors.message ? "error-message" : undefined}
             disabled={submitState === "submitting" || formUnavailable}
-            className={`w-full rounded-3xl border bg-input/50 px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 ${
-              touched.message && errors.message ? "border-destructive" : "border-border"
-            }`}
+            error={touched.message && !!errors.message}
           />
           {touched.message && errors.message && (
             <p id="error-message" className="mt-1 text-xs text-destructive" role="alert">
@@ -328,25 +318,27 @@ export function ContactForm() {
           )}
         </div>
 
-        <button
-          type="submit"
-          disabled={submitState === "submitting" || formUnavailable}
-          className="inline-flex h-11 items-center justify-center rounded-4xl bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {submitState === "submitting" ? "Sending…" : "Send message"}
-        </button>
-
-        {mailtoHref && (
-          <a
-            href={mailtoHref}
-            className="inline-flex h-11 items-center rounded-4xl border border-border px-6 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <Button
+            type="submit"
+            disabled={submitState === "submitting" || formUnavailable}
+            variant="primary"
+            className="w-full sm:w-auto"
           >
-            Email us instead
-          </a>
-        )}
+            {submitState === "submitting" ? "Sending…" : "Send message"}
+          </Button>
 
-        <p className="text-xs text-muted-foreground">We&apos;ll respond within one business day.</p>
+          {mailtoHref && (
+            <Button href={mailtoHref} variant="outline" className="w-full sm:w-auto">
+              Email us instead
+            </Button>
+          )}
+        </div>
+
+        <p className="text-xs text-muted-foreground pt-1">
+          We&apos;ll respond within one business day.
+        </p>
       </form>
-    </div>
+    </Card>
   );
 }
