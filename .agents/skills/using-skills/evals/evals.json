@@ -1,0 +1,43 @@
+{
+  "skill_name": "using-skills",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Hey, I just joined this repo and I'm completely lost. There's no AGENTS.md, no context/ folder, no .agents/skills/. How do I even start?",
+      "expected_output": "Routes to the bootstrap skill because the project lacks agentic context files. Announces which skill before acting.",
+      "files": [],
+      "expectations": [
+        "Routes to bootstrap (or describes bootstrapping the context system) and explains why",
+        "Announces the chosen skill with one short line before acting",
+        "Does NOT try to write code or run commands before the bootstrap",
+        "Does NOT recommend installing specific tech skills (vercel-react, ai-sdk, hono) by name since the skill must be tech-agnostic"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The login form's submit button is misaligned by 4px and the hover state looks janky. Can you make it look better?",
+      "expected_output": "Routes to impeccable because the task is UI design polish. Does not start coding.",
+      "files": [],
+      "expectations": [
+        "Routes to impeccable (UI/UX polish skill) and explains the routing choice",
+        "Announces the chosen skill before doing anything",
+        "Does NOT jump straight to editing code or proposing CSS values",
+        "Does NOT route to architect (this is a visual polish task, not a new feature)",
+        "Stays tech-agnostic — does not assume a specific framework or styling system"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want to add a 'duplicate project' feature that lets users clone an existing project with all its tasks and members. Should be on the project detail page.",
+      "expected_output": "Routes to architect because this is a new feature. Suggests reading context files and aligning language before proposing an implementation plan. Does not skip to coding.",
+      "files": [],
+      "expectations": [
+        "Routes to architect because the request is a new feature, not a bug or polish",
+        "Suggests reading project context files (or context-overview equivalent) before planning",
+        "Does NOT begin writing or editing code immediately",
+        "Mentions the need to align on language/decisions before producing a plan",
+        "Does NOT route to multiple skills simultaneously — picks one and announces"
+      ]
+    }
+  ]
+}
